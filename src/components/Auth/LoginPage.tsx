@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { authService } from '../../services/enterprise/AuthService';
 import { currentUserService } from '../../services/access/AccessControl';
 
-export const LoginPage: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
+export const LoginPage: React.FC<{ onLogin: () => void; onSwitchToSignup?: () => void }> = ({ onLogin, onSwitchToSignup }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -89,6 +89,15 @@ export const LoginPage: React.FC<{ onLogin: () => void }> = ({ onLogin }) => {
                             </button>
                         </div>
                     </div>
+
+                    {onSwitchToSignup && (
+                        <p className="text-center text-sm text-gray-500 mt-6">
+                            Don't have an account?{' '}
+                            <button onClick={onSwitchToSignup} className="text-blue-400 hover:text-blue-300 font-semibold">
+                                Sign Up
+                            </button>
+                        </p>
+                    )}
                 </div>
             </div>
         </div>

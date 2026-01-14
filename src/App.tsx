@@ -24,11 +24,12 @@ import { HeroSection } from './components/Marketing/HeroSection';
 import { Pricing } from './components/Marketing/Pricing';
 import { Minimap } from './components/UI/Advanced/Minimap';
 import { LoginPage } from './components/Auth/LoginPage';
+import { SignupPage } from './components/Auth/SignupPage';
 import { Features } from './components/Marketing/MarketingComponents';
 import { UserDashboard } from './components/User/UserDashboard';
 
 function App() {
-  const [view, setView] = useState<'editor' | 'marketing' | 'admin' | 'builder' | 'login' | 'dashboard'>('marketing');
+  const [view, setView] = useState<'editor' | 'marketing' | 'admin' | 'builder' | 'login' | 'signup' | 'dashboard'>('marketing');
   const [showInlineAI, setShowInlineAI] = useState(false);
   const [marketingPage, setMarketingPage] = useState<'landing' | 'pricing' | 'faq'>('landing');
   const [adminPage, setAdminPage] = useState<'overview' | 'users' | 'vendors' | 'settings'>('overview');
@@ -117,7 +118,11 @@ function App() {
   }, [setFileTree, toggleSidebar, toggleTerminal, toggleAIChat]);
 
   if (view === 'login') {
-    return <LoginPage onLogin={() => setView('dashboard')} />; // Redirect to Dashboard
+    return <LoginPage onLogin={() => setView('dashboard')} onSwitchToSignup={() => setView('signup')} />;
+  }
+
+  if (view === 'signup') {
+    return <SignupPage onSignup={() => setView('dashboard')} onSwitchToLogin={() => setView('login')} />;
   }
 
   if (view === 'dashboard') {
