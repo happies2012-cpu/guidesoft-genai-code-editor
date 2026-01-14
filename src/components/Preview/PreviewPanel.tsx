@@ -25,7 +25,7 @@ export const PreviewPanel: React.FC = () => {
             // Simple approach: Use the filename. If conflict, append ID.
             // Ideally we use relative paths.
 
-            let path = tab.filepath;
+            const path = tab.filepath;
             // Clean up absolute path for Sandpack (it wants relative to project root)
             // Assuming our project root is typically /Users/mac/mycursor/ai-code-editor
             // We can't know for sure, so we just use the filename for the "active" one or mapped structure.
