@@ -3,9 +3,9 @@ import { ArrowRight, Github, Twitter, Linkedin, Code } from 'lucide-react';
 
 interface MarketingLayoutProps {
     children: React.ReactNode;
-    onNavigate: (page: 'landing' | 'pricing' | 'faq') => void;
+    onNavigate: (page: 'landing' | 'pricing' | 'faq' | 'docs' | 'blog' | 'about' | 'careers' | 'contact' | 'privacy' | 'terms') => void;
     onGetStarted: () => void;
-    currentPage: 'landing' | 'pricing' | 'faq';
+    currentPage: string;
 }
 
 export const MarketingLayout: React.FC<MarketingLayoutProps> = ({
@@ -18,6 +18,7 @@ export const MarketingLayout: React.FC<MarketingLayoutProps> = ({
         <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col font-sans selection:bg-orange-500/30">
             {/* Navbar */}
             <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-md">
+                {/* ... existing navbar content ... */}
                 <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
                     <div
                         className="flex items-center gap-2 cursor-pointer group"
@@ -49,6 +50,12 @@ export const MarketingLayout: React.FC<MarketingLayoutProps> = ({
                             className={`hover:text-white transition-colors ${currentPage === 'faq' ? 'text-white' : ''}`}
                         >
                             FAQ
+                        </button>
+                        <button
+                            onClick={() => onNavigate('blog')}
+                            className={`hover:text-white transition-colors ${currentPage === 'blog' ? 'text-white' : ''}`}
+                        >
+                            Blog
                         </button>
                     </div>
 
@@ -94,20 +101,28 @@ export const MarketingLayout: React.FC<MarketingLayoutProps> = ({
                         <div>
                             <h4 className="font-bold text-white mb-4">Product</h4>
                             <ul className="space-y-2 text-sm text-gray-400">
-                                <li><button onClick={() => onNavigate('landing')} className="hover:text-orange-400">Features</button></li>
-                                <li><button onClick={() => onNavigate('pricing')} className="hover:text-orange-400">Pricing</button></li>
-                                <li><button onClick={() => onNavigate('faq')} className="hover:text-orange-400">Changelog</button></li>
-                                <li><a href="#" className="hover:text-orange-400">Documentation</a></li>
+                                <li><button onClick={() => onNavigate('landing')} className="hover:text-orange-400 transition-colors">Features</button></li>
+                                <li><button onClick={() => onNavigate('pricing')} className="hover:text-orange-400 transition-colors">Pricing</button></li>
+                                <li><button onClick={() => onNavigate('faq')} className="hover:text-orange-400 transition-colors">FAQ</button></li>
+                                <li><button onClick={() => onNavigate('docs')} className="hover:text-orange-400 transition-colors">Documentation</button></li>
                             </ul>
                         </div>
 
                         <div>
                             <h4 className="font-bold text-white mb-4">Company</h4>
                             <ul className="space-y-2 text-sm text-gray-400">
-                                <li><a href="#" className="hover:text-orange-400">About</a></li>
-                                <li><a href="#" className="hover:text-orange-400">Blog</a></li>
-                                <li><a href="#" className="hover:text-orange-400">Careers</a></li>
-                                <li><a href="#" className="hover:text-orange-400">Contact</a></li>
+                                <li><button onClick={() => onNavigate('about')} className="hover:text-orange-400 transition-colors">About</button></li>
+                                <li><button onClick={() => onNavigate('blog')} className="hover:text-orange-400 transition-colors">Blog</button></li>
+                                <li><button onClick={() => onNavigate('careers')} className="hover:text-orange-400 transition-colors">Careers</button></li>
+                                <li><button onClick={() => onNavigate('contact')} className="hover:text-orange-400 transition-colors">Contact</button></li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4 className="font-bold text-white mb-4">Legal</h4>
+                            <ul className="space-y-2 text-sm text-gray-400">
+                                <li><button onClick={() => onNavigate('privacy')} className="hover:text-orange-400 transition-colors">Privacy Policy</button></li>
+                                <li><button onClick={() => onNavigate('terms')} className="hover:text-orange-400 transition-colors">Terms of Service</button></li>
                             </ul>
                         </div>
                     </div>

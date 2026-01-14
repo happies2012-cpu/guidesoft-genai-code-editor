@@ -13,6 +13,9 @@ import AgentStatusPanel from './components/Sidebar/AgentStatusPanel';
 import ApprovalModal from './components/UI/ApprovalModal';
 import { MarketingLayout } from './components/Marketing/MarketingLayout';
 import { FAQPage } from './components/Marketing/FAQPage';
+import { PrivacyPage, TermsPage } from './components/Marketing/LegalPages';
+import { AboutPage, CareersPage, ContactPage } from './components/Marketing/CompanyPages';
+import { DocumentationPage, BlogPage } from './components/Marketing/ResourcesPages';
 import { AdminLayout } from './components/Admin/AdminLayout';
 import { DashboardOverview } from './components/Admin/DashboardOverview';
 import { UserManagement } from './components/Admin/UserManagement';
@@ -33,7 +36,7 @@ import { UserDashboard } from './components/User/UserDashboard';
 function App() {
   const [view, setView] = useState<'editor' | 'marketing' | 'admin' | 'builder' | 'login' | 'signup' | 'dashboard'>('marketing');
   const [showInlineAI, setShowInlineAI] = useState(false);
-  const [marketingPage, setMarketingPage] = useState<'landing' | 'pricing' | 'faq'>('landing');
+  const [marketingPage, setMarketingPage] = useState<'landing' | 'pricing' | 'faq' | 'docs' | 'blog' | 'about' | 'careers' | 'contact' | 'privacy' | 'terms'>('landing');
   const [adminPage, setAdminPage] = useState<'overview' | 'users' | 'vendors' | 'settings'>('overview');
   const [showSettings, setShowSettings] = useState(false);
   const {
@@ -113,11 +116,21 @@ function App() {
         e.preventDefault();
         setShowInlineAI(prev => !prev);
       }
+      // Command Palette (Cmd+P)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'p') {
+        e.preventDefault();
+        setCommandPaletteOpen(true);
+      }
+      // AI Chat (Cmd+L)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'l') {
+        e.preventDefault();
+        toggleAIChat();
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [setFileTree, toggleSidebar, toggleTerminal, toggleAIChat]);
+  }, [setFileTree, toggleSidebar, toggleTerminal, toggleAIChat, setCommandPaletteOpen]);
 
   if (view === 'login') {
     return <LoginPage onLogin={() => setView('dashboard')} onSwitchToSignup={() => setView('signup')} />;
@@ -135,7 +148,7 @@ function App() {
     return (
       <MarketingLayout
         currentPage={marketingPage}
-        onNavigate={setMarketingPage}
+        onNavigate={setMarketingPage as any}
         onGetStarted={() => setView('login')} // Redirect to Login instead of Editor
       >
         {marketingPage === 'landing' && (
@@ -147,6 +160,13 @@ function App() {
         )}
         {marketingPage === 'pricing' && <NewPricing />}
         {marketingPage === 'faq' && <FAQPage />}
+        {marketingPage === 'docs' && <DocumentationPage />}
+        {marketingPage === 'blog' && <BlogPage />}
+        {marketingPage === 'about' && <AboutPage />}
+        {marketingPage === 'careers' && <CareersPage />}
+        {marketingPage === 'contact' && <ContactPage />}
+        {marketingPage === 'privacy' && <PrivacyPage />}
+        {marketingPage === 'terms' && <TermsPage />}
       </MarketingLayout>
     );
   }
