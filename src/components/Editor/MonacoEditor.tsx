@@ -3,6 +3,7 @@ import Editor from '@monaco-editor/react';
 import type { OnMount } from '@monaco-editor/react';
 import type * as monaco from 'monaco-editor';
 import { useEditorStore } from '../../store/editorStore';
+import { inlineCompletionProvider } from '../../services/completion/InlineCompletionProvider';
 
 interface MonacoEditorProps {
     tabId: string;
@@ -13,10 +14,19 @@ interface MonacoEditorProps {
 
 export default function MonacoEditor({ tabId, value, language, onChange }: MonacoEditorProps) {
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-    const { settings } = useEditorStore();
+    const { settings, selectedProvider } = useEditorStore();
 
     const handleEditorDidMount: OnMount = (editor, monaco) => {
         editorRef.current = editor;
+
+        // Register inline completion provider for AI-powered suggestions
+        monaco.languages.registerInlineCompletionsProvider(
+            { pattern: '**' },
+            inlineCompletionProvider
+        );
+
+        // Update provider settings
+        inlineCompletionProvider.setProvider(selectedProvider, settings.aiModel);
 
         // Configure editor options
         editor.updateOptions({
@@ -38,6 +48,15 @@ export default function MonacoEditor({ tabId, value, language, onChange }: Monac
                 bracketPairs: true,
                 indentation: true,
             },
+            // Enable inline suggestions
+            inlineSuggest: {
+                enabled: true,
+            },
+            quickSuggestions: {
+                other: true,
+                comments: false,
+                strings: false,
+            },
         });
 
         // Add keyboard shortcuts
@@ -58,6 +77,11 @@ export default function MonacoEditor({ tabId, value, language, onChange }: Monac
             });
         });
     };
+
+    useEffect(() => {
+        // Update provider when selected provider changes
+        inlineCompletionProvider.setProvider(selectedProvider, settings.aiModel);
+    }, [selectedProvider, settings.aiModel]);
 
     useEffect(() => {
         if (editorRef.current) {
