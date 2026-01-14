@@ -1,15 +1,20 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { EditorTab, FileTreeNode, AIProvider, AIMessage, TerminalSession, EditorSettings, GitStatus } from '../types';
+import { getLanguageFromFilename } from '../utils/fileUtils';
 
 interface EditorStore {
     // Tabs
     tabs: EditorTab[];
     activeTabId: string | null;
+    recentFiles: string[]; // List of filepaths
     addTab: (tab: EditorTab) => void;
+    openFile: (path: string) => Promise<void>;
     removeTab: (tabId: string) => void;
     updateTab: (tabId: string, updates: Partial<EditorTab>) => void;
     setActiveTab: (tabId: string) => void;
+    closeAllTabs: () => void;
+    closeOtherTabs: (tabId: string) => void;
 
     // File Tree
     fileTree: FileTreeNode[];
@@ -55,11 +60,12 @@ interface EditorStore {
     toggleTerminal: () => void;
     toggleAIChat: () => void;
     toggleCommandPalette: () => void;
+    applyAICode: (code: string) => void;
 }
 
 export const useEditorStore = create<EditorStore>()(
     persist(
-        (set) => ({
+        (set, get) => ({
             // Git
             gitStatus: null,
             setGitStatus: (status) => set({ gitStatus: status }),
@@ -78,14 +84,58 @@ export const useEditorStore = create<EditorStore>()(
             triggerAIAction: (type, code) => set({ pendingAIAction: { type, code }, aiChatVisible: true }),
             clearPendingAIAction: () => set({ pendingAIAction: null }),
 
+            // Apply AI Code
+            applyAICode: (code) =>
+                set((state) => {
+                    if (state.activeTabId) {
+                        return {
+                            tabs: state.tabs.map((t) =>
+                                t.id === state.activeTabId ? { ...t, content: code, isDirty: true } : t
+                            ),
+                        };
+                    }
+                    return state;
+                }),
+
             // Tabs
             tabs: [],
             activeTabId: null,
+            recentFiles: [],
             addTab: (tab) =>
                 set((state) => ({
                     tabs: [...state.tabs, tab],
                     activeTabId: tab.id,
+                    recentFiles: [
+                        tab.filepath,
+                        ...state.recentFiles.filter((f) => f !== tab.filepath),
+                    ].slice(0, 10),
                 })),
+            openFile: async (path) => {
+                const { fileSystemService } = await import('../services/filesystem/FileSystemService');
+                try {
+                    // Check if file is already open
+                    const existingTab = useEditorStore.getState().tabs.find(t => t.filepath === path);
+                    if (existingTab) {
+                        useEditorStore.getState().setActiveTab(existingTab.id);
+                        return;
+                    }
+
+                    const content = await fileSystemService.readFile(path);
+                    const filename = path.split('/').pop() || path;
+                    const newTab: EditorTab = {
+                        id: `tab-${Date.now()}`,
+                        filename,
+                        filepath: path,
+                        language: getLanguageFromFilename(filename),
+                        content,
+                        isDirty: false,
+                    };
+                    useEditorStore.getState().addTab(newTab);
+                } catch (error) {
+                    console.error('Failed to open file:', error);
+                    alert('Failed to open file: ' + (error as Error).message);
+                }
+            },
             removeTab: (tabId) =>
                 set((state) => {
                     const newTabs = state.tabs.filter((t) => t.id !== tabId);
@@ -99,7 +149,26 @@ export const useEditorStore = create<EditorStore>()(
                 set((state) => ({
                     tabs: state.tabs.map((t) => (t.id === tabId ? { ...t, ...updates } : t)),
                 })),
-            setActiveTab: (tabId) => set({ activeTabId: tabId }),
+            setActiveTab: (tabId) =>
+                set((state) => {
+                    const tab = state.tabs.find((t) => t.id === tabId);
+                    if (tab) {
+                        return {
+                            activeTabId: tabId,
+                            recentFiles: [
+                                tab.filepath,
+                                ...state.recentFiles.filter((f) => f !== tab.filepath),
+                            ].slice(0, 10),
+                        };
+                    }
+                    return { activeTabId: tabId };
+                }),
+            closeAllTabs: () => set({ tabs: [], activeTabId: null }),
+            closeOtherTabs: (tabId) =>
+                set((state) => ({
+                    tabs: state.tabs.filter((t) => t.id === tabId),
+                    activeTabId: tabId,
+                })),
 
             // File Tree
             fileTree: [],

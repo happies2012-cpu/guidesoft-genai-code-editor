@@ -3,9 +3,10 @@ import { FileText, Folder, FolderOpen, ChevronRight, ChevronDown, Plus, File, Fo
 import { useEditorStore } from '../../store/editorStore';
 import { fileSystemService } from '../../services/filesystem/FileSystemService';
 import type { FileTreeNode, EditorTab } from '../../types';
+import { getLanguageFromFilename, updateNodeChildren } from '../../utils/fileUtils';
 
 export default function FileExplorer() {
-    const { fileTree, toggleNodeExpanded, addTab, setFileTree } = useEditorStore();
+    const { fileTree, toggleNodeExpanded, addTab, setFileTree, openFile } = useEditorStore();
     const [hoveredPath, setHoveredPath] = useState<string | null>(null);
     const [contextMenu, setContextMenu] = useState<{ x: number; y: number; node: FileTreeNode } | null>(null);
     const [showNewFileDialog, setShowNewFileDialog] = useState(false);
@@ -57,20 +58,7 @@ export default function FileExplorer() {
 
     const handleFileClick = async (node: FileTreeNode) => {
         if (node.type === 'file') {
-            try {
-                const content = await fileSystemService.readFile(node.path);
-                const newTab: EditorTab = {
-                    id: `tab-${Date.now()}`,
-                    filename: node.name,
-                    filepath: node.path,
-                    language: getLanguageFromFilename(node.name),
-                    content,
-                    isDirty: false,
-                };
-                addTab(newTab);
-            } catch (error) {
-                console.error('Failed to read file:', error);
-            }
+            openFile(node.path);
         } else {
             toggleNodeExpanded(node.path);
             if (!node.isExpanded && (!node.children || node.children.length === 0)) {
@@ -369,27 +357,4 @@ function Dialog({ title, children, onClose, onConfirm }: {
     );
 }
 
-// Helper functions
-function getLanguageFromFilename(filename: string): string {
-    const ext = filename.split('.').pop()?.toLowerCase();
-    const languageMap: Record<string, string> = {
-        js: 'javascript', jsx: 'javascript', ts: 'typescript', tsx: 'typescript',
-        py: 'python', java: 'java', cpp: 'cpp', c: 'c', cs: 'csharp',
-        go: 'go', rs: 'rust', rb: 'ruby', php: 'php', html: 'html',
-        css: 'css', scss: 'scss', json: 'json', xml: 'xml', md: 'markdown',
-        sql: 'sql', sh: 'shell', yaml: 'yaml', yml: 'yaml',
-    };
-    return languageMap[ext || ''] || 'plaintext';
-}
-
-function updateNodeChildren(nodes: FileTreeNode[], path: string, children: FileTreeNode[]): FileTreeNode[] {
-    return nodes.map((node) => {
-        if (node.path === path) {
-            return { ...node, children, isExpanded: true };
-        }
-        if (node.children) {
-            return { ...node, children: updateNodeChildren(node.children, path, children) };
-        }
-        return node;
-    });
 }

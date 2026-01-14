@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, Trash2, Settings, Key, Search, Loader2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import { Send, Sparkles, Trash2, Settings, Key, Search, Loader2, Copy, FileOutput, Check } from 'lucide-react';
 import { useEditorStore } from '../../store/editorStore';
 import { aiService } from '../../services/ai/AIService';
 import { contextService } from '../../services/ai/ContextService';
@@ -12,7 +13,7 @@ export default function AIChat() {
     const [apiKey, setApiKey] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [isScanning, setIsScanning] = useState(false);
-    const { aiMessages, addAIMessage, clearAIMessages, selectedProvider, aiProviders, settings, pendingAIAction, clearPendingAIAction } =
+    const { aiMessages, addAIMessage, clearAIMessages, selectedProvider, aiProviders, settings, pendingAIAction, clearPendingAIAction, applyAICode } =
         useEditorStore();
 
     const selectedProviderData = aiProviders.find((p) => p.id === selectedProvider);
@@ -136,6 +137,55 @@ export default function AIChat() {
         }
     };
 
+    // Custom Code Block component with Apply button
+    const CodeBlock = ({ inline, className, children, ...props }: any) => {
+        const [copied, setCopied] = useState(false);
+        const code = String(children).replace(/\n$/, '');
+        const match = /language-(\w+)/.exec(className || '');
+
+        const handleCopy = () => {
+            navigator.clipboard.writeText(code);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        };
+
+        const handleApply = () => {
+            applyAICode(code);
+            alert('Code applied to active file!');
+        };
+
+        if (inline) {
+            return <code className="bg-dark-bg px-1 rounded text-orange-400" {...props}>{children}</code>;
+        }
+
+        return (
+            <div className="relative group my-2 border border-dark-border rounded-lg overflow-hidden">
+                <div className="flex items-center justify-between px-3 py-1.5 bg-dark-bg/50 border-b border-dark-border">
+                    <span className="text-xs text-gray-400 uppercase font-medium">{match ? match[1] : 'code'}</span>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleCopy}
+                            className="p-1 hover:bg-dark-hover rounded transition-colors text-gray-400 hover:text-white"
+                            title="Copy code"
+                        >
+                            {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
+                        </button>
+                        <button
+                            onClick={handleApply}
+                            className="p-1 hover:bg-dark-hover rounded transition-colors text-primary-500 hover:text-primary-400"
+                            title="Apply to active file"
+                        >
+                            <FileOutput size={14} />
+                        </button>
+                    </div>
+                </div>
+                <div className="p-3 bg-dark-bg/30 text-xs font-mono overflow-x-auto custom-scrollbar">
+                    <pre><code className={className} {...props}>{children}</code></pre>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="flex flex-col h-full bg-dark-surface border-l border-dark-border">
             {/* Header */}
@@ -200,13 +250,21 @@ export default function AIChat() {
                                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                             >
                                 <div
-                                    className={`max-w-[80%] rounded-lg p-3 ${message.role === 'user'
-                                        ? 'bg-primary-600 text-white'
-                                        : 'bg-dark-bg text-gray-200'
+                                    className={`max-w-[90%] rounded-lg p-3 ${message.role === 'user'
+                                        ? 'bg-primary-600 text-white shadow-lg'
+                                        : 'bg-dark-bg text-gray-200 border border-dark-border'
                                         }`}
                                 >
-                                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                                    <p className="text-xs opacity-60 mt-1">
+                                    <div className="markdown-content">
+                                        <ReactMarkdown
+                                            components={{
+                                                code: CodeBlock,
+                                            }}
+                                        >
+                                            {message.content}
+                                        </ReactMarkdown>
+                                    </div>
+                                    <p className="text-[10px] opacity-40 mt-2 text-right">
                                         {new Date(message.timestamp).toLocaleTimeString()}
                                     </p>
                                 </div>

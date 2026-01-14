@@ -136,8 +136,27 @@ export default function CommandPalette({ onClose }: CommandPaletteProps) {
             action: () => { setActiveTab(tab.id); onClose(); },
             keywords: ['open', 'file', tab.filename, tab.filepath || ''],
         })),
+        {
+            id: 'close-all-tabs',
+            label: 'Tabs: Close All',
+            description: 'Close all open editor tabs',
+            icon: <File size={16} />,
+            action: () => { useEditorStore.getState().closeAllTabs(); onClose(); },
+            keywords: ['close', 'all', 'tabs', 'clear'],
+        },
+        {
+            id: 'scan-workspace',
+            label: 'AI: Scan Workspace',
+            description: 'Refresh codebase context for AI',
+            icon: <Search size={16} />,
+            action: async () => {
+                const { contextService } = await import('../../services/ai/ContextService');
+                await contextService.refreshContext();
+                onClose();
+            },
+            keywords: ['scan', 'workspace', 'context', 'ai', 'index'],
+        },
     ];
-
     const filteredCommands = commands.filter((cmd) => {
         const searchLower = search.toLowerCase();
         return (
