@@ -25,13 +25,13 @@ A production-ready AI-powered code editor built with React, Monaco Editor, and m
 - **Context-Aware** - AI understands your codebase
 - **Unified Interface** - Easy provider switching
 
-### 🚧 Coming Soon (Phase 3+)
-- Inline code completion (Copilot-style)
-- File system operations (create, delete, rename)
-- Terminal integration (xterm.js)
-- LSP integration for intelligent code analysis
-- Collaborative editing
-- Extensions marketplace
+### ✅ Advanced Features (Complete)
+- **Inline Code Completion** - Copilot-style ghost text completions
+- **File System Operations** - Create, delete, rename files and folders
+- **Terminal Integration** - Integrated xterm.js terminal
+- **LSP Integration** - Intelligent code analysis and diagnostics
+- **Codebase Indexing** - AI context awareness for the entire workspace
+- **Command Palette** - Keyboard-driven navigation (Cmd/Ctrl+P)
 
 ## 📦 Installation
 
@@ -45,9 +45,13 @@ npm install
 
 # Start development server
 npm run dev
+
+# Build for Production
+npm run build
+# The optimized application will be in the `dist` folder
 ```
 
-The application will be available at `http://localhost:5173/`
+The application will be available at `http://localhost:5173/` during development.
 
 ## 🔧 Configuration
 
