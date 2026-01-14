@@ -1,73 +1,127 @@
-# React + TypeScript + Vite
+# GUIDESOFT GENAI - AI Code Editor
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![GUIDESOFT GENAI](public/logo.png)
 
-Currently, two official plugins are available:
+A production-ready AI-powered code editor built with React, Monaco Editor, and multi-provider AI integration. Similar to Cursor and Windsurf, but with support for multiple AI providers including Anthropic Claude, OpenAI GPT, Google Gemini, and local Ollama models.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Features
 
-## React Compiler
+### ✅ Phase 1 - Core Editor (Complete)
+- **Monaco Editor Integration** - Professional code editing with VS Code's engine
+- **Multi-Tab Support** - Open and manage multiple files simultaneously
+- **Syntax Highlighting** - Support for 50+ programming languages
+- **File Explorer** - Tree-view navigation with expand/collapse
+- **Modern UI** - Cursor-inspired dark theme with smooth animations
+- **Keyboard Shortcuts** - Efficient navigation and control
+- **Responsive Design** - Works on all screen sizes
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### ✅ Phase 2 - AI Integration (Complete)
+- **Multi-Provider Support**:
+  - 🤖 Anthropic Claude (claude-sonnet-4, claude-opus-4)
+  - 🧠 OpenAI GPT (gpt-4, gpt-4-turbo)
+  - ✨ Google Gemini (gemini-pro, gemini-ultra)
+  - 🏠 Ollama (local models - codellama, deepseek-coder, etc.)
+- **Streaming Responses** - Real-time AI feedback
+- **Context-Aware** - AI understands your codebase
+- **Unified Interface** - Easy provider switching
 
-## Expanding the ESLint configuration
+### 🚧 Coming Soon (Phase 3+)
+- Inline code completion (Copilot-style)
+- File system operations (create, delete, rename)
+- Terminal integration (xterm.js)
+- LSP integration for intelligent code analysis
+- Collaborative editing
+- Extensions marketplace
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 📦 Installation
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+```bash
+# Clone the repository
+git clone https://github.com/happies2012-cpu/guidesoft-genai-code-editor.git
+cd guidesoft-genai-code-editor
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+# Install dependencies
+npm install
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Start development server
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The application will be available at `http://localhost:5173/`
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🔧 Configuration
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### AI Provider Setup
+
+To use AI features, you'll need API keys for your chosen providers:
+
+1. **Anthropic Claude**: Get your API key from [console.anthropic.com](https://console.anthropic.com)
+2. **OpenAI**: Get your API key from [platform.openai.com](https://platform.openai.com)
+3. **Google Gemini**: Get your API key from [makersuite.google.com](https://makersuite.google.com)
+4. **Ollama**: Install locally from [ollama.ai](https://ollama.ai) - no API key needed
+
+API keys will be stored securely in your browser's local storage (encrypted in future updates).
+
+## 🎨 Tech Stack
+
+- **Framework**: React 18 + TypeScript
+- **Build Tool**: Vite 7.3
+- **Editor**: Monaco Editor (@monaco-editor/react)
+- **Styling**: Tailwind CSS 3.4
+- **State Management**: Zustand with persistence
+- **AI SDKs**: 
+  - @anthropic-ai/sdk
+  - openai
+  - @google/generative-ai
+- **Icons**: Lucide React
+- **Fonts**: Inter (UI), JetBrains Mono (code)
+
+## 📁 Project Structure
+
 ```
+ai-code-editor/
+├── src/
+│   ├── components/
+│   │   ├── Editor/          # Monaco editor components
+│   │   ├── Sidebar/         # File explorer & AI chat
+│   │   └── UI/              # Reusable UI components
+│   ├── services/
+│   │   └── ai/              # AI provider integrations
+│   ├── store/               # Zustand state management
+│   ├── types/               # TypeScript definitions
+│   └── App.tsx              # Main application
+├── public/
+│   └── logo.png             # GUIDESOFT GENAI logo
+└── package.json
+```
+
+## ⌨️ Keyboard Shortcuts
+
+- `Cmd/Ctrl + B` - Toggle file explorer
+- `Cmd/Ctrl + `` ` - Toggle terminal
+- `Cmd/Ctrl + Shift + A` - Toggle AI chat
+- `Cmd/Ctrl + P` - Command palette (coming soon)
+- `Cmd/Ctrl + S` - Save file
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📄 License
+
+MIT License - feel free to use this project for personal or commercial purposes.
+
+## 🔗 Links
+
+- **GitHub**: [guidesoft-genai-code-editor](https://github.com/happies2012-cpu/guidesoft-genai-code-editor)
+- **GUIDESOFT**: [workflow.gsapps.in](https://workflow.gsapps.in)
+
+## 🙏 Acknowledgments
+
+- Built with [Monaco Editor](https://microsoft.github.io/monaco-editor/) - the editor that powers VS Code
+- Inspired by [Cursor](https://cursor.sh) and [Windsurf](https://codeium.com/windsurf)
+- AI providers: Anthropic, OpenAI, Google, Ollama
+
+---
+
+**GUIDESOFT GENAI** - Empowering developers with AI-powered coding tools
