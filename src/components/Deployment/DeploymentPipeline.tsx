@@ -93,11 +93,10 @@ export const DeploymentPipeline: React.FC = () => {
                 className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10"
               >
                 <div className="flex items-center gap-4">
-                  <div className={`w-3 h-3 rounded-full ${
-                    deployment.status === 'success' ? 'bg-green-500' :
-                    deployment.status === 'running' ? 'bg-blue-500 animate-pulse' :
-                    'bg-red-500'
-                  }`}></div>
+                  <div className={`w-3 h-3 rounded-full ${deployment.status === 'success' ? 'bg-green-500' :
+                      deployment.status === 'running' ? 'bg-blue-500 animate-pulse' :
+                        'bg-red-500'
+                    }`}></div>
                   <div>
                     <div className="font-bold capitalize">{deployment.env}</div>
                     <div className="text-sm text-gray-400">{deployment.time}</div>
