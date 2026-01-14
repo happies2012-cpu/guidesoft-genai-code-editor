@@ -60,9 +60,20 @@ export default function MonacoEditor({ tabId, value, language, onChange }: Monac
         });
 
         // Add keyboard shortcuts
-        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, async () => {
             // Save file
-            console.log('Save file');
+            const tab = useEditorStore.getState().tabs.find(t => t.id === tabId);
+            if (tab && tab.filepath) {
+                try {
+                    const { fileSystemService } = await import('../../services/filesystem/FileSystemService');
+                    await fileSystemService.writeFile(tab.filepath, tab.content);
+                    useEditorStore.getState().updateTab(tabId, { isDirty: false });
+                    console.log('File saved:', tab.filepath);
+                } catch (error) {
+                    console.error('Failed to save file:', error);
+                    alert('Failed to save file: ' + (error as Error).message);
+                }
+            }
         });
 
         editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyP, () => {

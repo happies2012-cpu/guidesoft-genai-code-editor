@@ -1,12 +1,14 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Sparkles, FolderTree, Terminal as TerminalIcon, Settings } from 'lucide-react';
 import EditorContainer from './components/Editor/EditorContainer';
 import FileExplorer from './components/Sidebar/FileExplorer';
 import AIChat from './components/Sidebar/AIChat';
 import TerminalComponent from './components/Terminal/TerminalComponent';
+import SettingsPanel from './components/UI/SettingsPanel';
 import { useEditorStore } from './store/editorStore';
 
 function App() {
+  const [showSettings, setShowSettings] = useState(false);
   const {
     sidebarVisible,
     aiChatVisible,
@@ -122,7 +124,11 @@ function App() {
           >
             <TerminalIcon size={18} />
           </button>
-          <button className="p-2 hover:bg-dark-hover rounded transition-colors" title="Settings">
+          <button
+            onClick={() => setShowSettings(true)}
+            className="p-2 hover:bg-dark-hover rounded transition-colors"
+            title="Settings"
+          >
             <Settings size={18} />
           </button>
         </div>
@@ -185,6 +191,9 @@ function App() {
           <span className="text-primary-500">AI Ready</span>
         </div>
       </div>
+
+      {/* Settings Panel */}
+      {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
     </div>
   );
 }
