@@ -37,7 +37,8 @@ class AIService {
 
     async complete(request: AICompletionRequest): Promise<AICompletionResponse> {
         const provider = this.getProvider(request.provider);
-        return provider.complete(request);
+        const requestWithContext = this.injectContext(request);
+        return provider.complete(requestWithContext);
     }
 
     async streamComplete(
@@ -45,7 +46,30 @@ class AIService {
         callback: AICompletionCallback
     ): Promise<void> {
         const provider = this.getProvider(request.provider);
-        return provider.streamComplete(request, callback);
+        const requestWithContext = this.injectContext(request);
+        return provider.streamComplete(requestWithContext, callback);
+    }
+
+    private injectContext(request: AICompletionRequest): AICompletionRequest {
+        const { contextService } = require('./ContextService');
+        const context = contextService.getContext();
+
+        if (!context) return request;
+
+        const contextSummary = `[Project Context]
+Structure:
+${context.fileTree}
+
+Key Files Summary:
+${Object.entries(context.majorFiles)
+                .map(([path, content]) => `File: ${path}\n${content.substring(0, 300)}`)
+                .join('\n')}
+---
+`;
+        return {
+            ...request,
+            prompt: `${contextSummary}\n\nUser Question: ${request.prompt}`,
+        };
     }
 
     private getProvider(providerId: string) {

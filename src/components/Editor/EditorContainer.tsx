@@ -13,6 +13,27 @@ export default function EditorContainer() {
                 content: value,
                 isDirty: true,
             });
+
+            // Auto-save logic
+            const { settings } = useEditorStore.getState();
+            if (settings.autoSave && activeTab.filepath) {
+                // We'll use a simple timeout for debouncing
+                const timerId = `autosave-${activeTab.id}`;
+                // @ts-ignore - access window to store timer
+                if (window[timerId]) clearTimeout(window[timerId]);
+
+                // @ts-ignore
+                window[timerId] = setTimeout(async () => {
+                    try {
+                        const { fileSystemService } = await import('../../services/filesystem/FileSystemService');
+                        await fileSystemService.writeFile(activeTab.filepath, value);
+                        useEditorStore.getState().updateTab(activeTab.id, { isDirty: false });
+                        console.log(`Auto-saved ${activeTab.filename}`);
+                    } catch (error) {
+                        console.error('Auto-save failed:', error);
+                    }
+                }, 1500); // 1.5s delay
+            }
         }
     };
 

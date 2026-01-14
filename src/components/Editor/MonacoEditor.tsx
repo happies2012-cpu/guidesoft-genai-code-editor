@@ -19,6 +19,10 @@ export default function MonacoEditor({ tabId, value, language, onChange }: Monac
     const handleEditorDidMount: OnMount = (editor, monaco) => {
         editorRef.current = editor;
 
+        // Initialize LSP Service
+        const { lspService } = require('../../services/lsp/LSPService');
+        lspService.initialize(monaco);
+
         // Register inline completion provider for AI-powered suggestions
         monaco.languages.registerInlineCompletionsProvider(
             { pattern: '**' },
@@ -72,6 +76,35 @@ export default function MonacoEditor({ tabId, value, language, onChange }: Monac
                 } catch (error) {
                     console.error('Failed to save file:', error);
                     alert('Failed to save file: ' + (error as Error).message);
+                }
+            }
+        });
+
+        // Add context menu actions
+        editor.addAction({
+            id: 'ai-explain',
+            label: 'AI: Explain Selection',
+            contextMenuGroupId: 'navigation',
+            contextMenuOrder: 1,
+            run: (ed) => {
+                const selection = ed.getSelection();
+                const text = ed.getModel()?.getValueInRange(selection || { startLineNumber: 1, startColumn: 1, endLineNumber: 1, endColumn: 1 });
+                if (text) {
+                    useEditorStore.getState().triggerAIAction('explain', text);
+                }
+            }
+        });
+
+        editor.addAction({
+            id: 'ai-fix',
+            label: 'AI: Fix Selection',
+            contextMenuGroupId: 'navigation',
+            contextMenuOrder: 2,
+            run: (ed) => {
+                const selection = ed.getSelection();
+                const text = ed.getModel()?.getValueInRange(selection || { startLineNumber: 1, startColumn: 1, endLineNumber: 1, endColumn: 1 });
+                if (text) {
+                    useEditorStore.getState().triggerAIAction('fix', text);
                 }
             }
         });

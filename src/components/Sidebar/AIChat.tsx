@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, Trash2, Settings, Key } from 'lucide-react';
+import { Send, Sparkles, Trash2, Settings, Key, Search, Loader2 } from 'lucide-react';
 import { useEditorStore } from '../../store/editorStore';
 import { aiService } from '../../services/ai/AIService';
+import { contextService } from '../../services/ai/ContextService';
 import type { AIMessage } from '../../types';
 
 export default function AIChat() {
@@ -10,10 +11,27 @@ export default function AIChat() {
     const [showApiKeyModal, setShowApiKeyModal] = useState(false);
     const [apiKey, setApiKey] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const { aiMessages, addAIMessage, clearAIMessages, selectedProvider, aiProviders, settings } =
+    const [isScanning, setIsScanning] = useState(false);
+    const { aiMessages, addAIMessage, clearAIMessages, selectedProvider, aiProviders, settings, pendingAIAction, clearPendingAIAction } =
         useEditorStore();
 
     const selectedProviderData = aiProviders.find((p) => p.id === selectedProvider);
+
+    useEffect(() => {
+        if (pendingAIAction) {
+            const prompt = pendingAIAction.type === 'explain'
+                ? `Please explain the following code snippet:\n\n\`\`\`\n${pendingAIAction.code}\n\`\`\``
+                : `Please help me find and fix any bugs in this code snippet:\n\n\`\`\`\n${pendingAIAction.code}\n\`\`\``;
+
+            setInput(prompt);
+            clearPendingAIAction();
+            // We delay handleSend slightly to ensure state is updated
+            setTimeout(() => {
+                const sendBtn = document.getElementById('ai-send-btn');
+                sendBtn?.click();
+            }, 100);
+        }
+    }, [pendingAIAction]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -99,6 +117,18 @@ export default function AIChat() {
         }
     };
 
+    const handleScanWorkspace = async () => {
+        setIsScanning(true);
+        try {
+            await contextService.refreshContext();
+            console.log('Workspace scanned successfully');
+        } catch (error) {
+            console.error('Scan failed:', error);
+        } finally {
+            setIsScanning(false);
+        }
+    };
+
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -115,6 +145,14 @@ export default function AIChat() {
                     <h2 className="font-semibold">AI Assistant</h2>
                 </div>
                 <div className="flex items-center gap-2">
+                    <button
+                        onClick={handleScanWorkspace}
+                        disabled={isScanning}
+                        className={`p-2 hover:bg-dark-hover rounded transition-colors ${isScanning ? 'animate-spin' : ''}`}
+                        title="Scan Workspace for Context"
+                    >
+                        {isScanning ? <Loader2 size={16} /> : <Search size={16} />}
+                    </button>
                     <button
                         onClick={clearAIMessages}
                         className="p-2 hover:bg-dark-hover rounded transition-colors"
@@ -202,6 +240,7 @@ export default function AIChat() {
                         rows={3}
                     />
                     <button
+                        id="ai-send-btn"
                         onClick={handleSend}
                         disabled={!input.trim() || isLoading}
                         className="px-4 py-2 bg-primary-600 hover:bg-primary-700 disabled:bg-gray-700 disabled:cursor-not-allowed rounded-lg transition-colors ai-glow"

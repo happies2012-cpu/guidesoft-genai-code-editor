@@ -41,6 +41,11 @@ interface EditorStore {
     setGitStatus: (status: GitStatus | null) => void;
     refreshGitStatus: () => Promise<void>;
 
+    // AI Trigger
+    pendingAIAction: { type: 'explain' | 'fix'; code: string } | null;
+    triggerAIAction: (type: 'explain' | 'fix', code: string) => void;
+    clearPendingAIAction: () => void;
+
     // UI State
     sidebarVisible: boolean;
     terminalVisible: boolean;
@@ -67,6 +72,11 @@ export const useEditorStore = create<EditorStore>()(
                     console.error('Git refresh error:', error);
                 }
             },
+
+            // AI Trigger
+            pendingAIAction: null,
+            triggerAIAction: (type, code) => set({ pendingAIAction: { type, code }, aiChatVisible: true }),
+            clearPendingAIAction: () => set({ pendingAIAction: null }),
 
             // Tabs
             tabs: [],
