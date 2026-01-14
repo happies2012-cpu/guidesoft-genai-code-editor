@@ -1,13 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, Trash2, Settings } from 'lucide-react';
+import { Send, Sparkles, Trash2, Settings, Key } from 'lucide-react';
 import { useEditorStore } from '../../store/editorStore';
+import { aiService } from '../../services/ai/AIService';
 import type { AIMessage } from '../../types';
 
 export default function AIChat() {
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+    const [apiKey, setApiKey] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const { aiMessages, addAIMessage, clearAIMessages, selectedProvider, aiProviders } =
+    const { aiMessages, addAIMessage, clearAIMessages, selectedProvider, aiProviders, settings } =
         useEditorStore();
 
     const selectedProviderData = aiProviders.find((p) => p.id === selectedProvider);
@@ -19,6 +22,12 @@ export default function AIChat() {
     const handleSend = async () => {
         if (!input.trim() || isLoading) return;
 
+        // Check if API key is set for the provider
+        if (selectedProvider !== 'ollama' && !aiService.hasApiKey(selectedProvider)) {
+            setShowApiKeyModal(true);
+            return;
+        }
+
         const userMessage: AIMessage = {
             id: Date.now().toString(),
             role: 'user',
@@ -27,21 +36,67 @@ export default function AIChat() {
         };
 
         addAIMessage(userMessage);
+        const userInput = input;
         setInput('');
         setIsLoading(true);
 
-        // TODO: Implement actual AI API call
-        // For now, simulate a response
-        setTimeout(() => {
+        try {
+            // Create AI response message that will be updated with streaming content
+            const aiResponseId = (Date.now() + 1).toString();
             const aiResponse: AIMessage = {
-                id: (Date.now() + 1).toString(),
+                id: aiResponseId,
                 role: 'assistant',
-                content: `This is a simulated response. AI integration will be implemented in the next phase.\n\nYou asked: "${input}"\n\nProvider: ${selectedProviderData?.name}`,
+                content: '',
                 timestamp: Date.now(),
             };
             addAIMessage(aiResponse);
+
+            let fullContent = '';
+
+            // Stream the AI response
+            await aiService.streamComplete(
+                {
+                    provider: selectedProvider,
+                    model: settings.aiModel,
+                    prompt: userInput,
+                    systemPrompt: 'You are a helpful AI coding assistant. Provide clear, concise answers about code, programming concepts, and debugging.',
+                    temperature: 0.7,
+                },
+                (chunk) => {
+                    if (!chunk.done) {
+                        fullContent += chunk.content;
+                        // Update the message content in the store
+                        useEditorStore.setState((state) => ({
+                            aiMessages: state.aiMessages.map((msg) =>
+                                msg.id === aiResponseId
+                                    ? { ...msg, content: fullContent }
+                                    : msg
+                            ),
+                        }));
+                    }
+                }
+            );
+
             setIsLoading(false);
-        }, 1000);
+        } catch (error) {
+            console.error('AI completion error:', error);
+            const errorMessage: AIMessage = {
+                id: (Date.now() + 2).toString(),
+                role: 'assistant',
+                content: `Error: ${error instanceof Error ? error.message : 'Failed to get AI response'}. Please check your API key and try again.`,
+                timestamp: Date.now(),
+            };
+            addAIMessage(errorMessage);
+            setIsLoading(false);
+        }
+    };
+
+    const handleSaveApiKey = () => {
+        if (apiKey.trim()) {
+            aiService.setApiKey(selectedProvider, apiKey.trim());
+            setShowApiKeyModal(false);
+            setApiKey('');
+        }
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -68,8 +123,9 @@ export default function AIChat() {
                         <Trash2 size={16} />
                     </button>
                     <button
+                        onClick={() => setShowApiKeyModal(true)}
                         className="p-2 hover:bg-dark-hover rounded transition-colors"
-                        title="Settings"
+                        title="API Key Settings"
                     >
                         <Settings size={16} />
                     </button>
@@ -80,6 +136,9 @@ export default function AIChat() {
             <div className="px-4 py-2 bg-dark-bg border-b border-dark-border">
                 <p className="text-xs text-gray-400">
                     Using: <span className="text-primary-500">{selectedProviderData?.name}</span>
+                    {selectedProvider !== 'ollama' && !aiService.hasApiKey(selectedProvider) && (
+                        <span className="text-yellow-500 ml-2">(API key not set)</span>
+                    )}
                 </p>
             </div>
 
@@ -104,8 +163,8 @@ export default function AIChat() {
                             >
                                 <div
                                     className={`max-w-[80%] rounded-lg p-3 ${message.role === 'user'
-                                            ? 'bg-primary-600 text-white'
-                                            : 'bg-dark-bg text-gray-200'
+                                        ? 'bg-primary-600 text-white'
+                                        : 'bg-dark-bg text-gray-200'
                                         }`}
                                 >
                                     <p className="text-sm whitespace-pre-wrap">{message.content}</p>
@@ -154,6 +213,46 @@ export default function AIChat() {
                     Press Enter to send, Shift+Enter for new line
                 </p>
             </div>
+
+            {/* API Key Modal */}
+            {showApiKeyModal && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-dark-surface border border-dark-border rounded-lg p-6 w-96">
+                        <div className="flex items-center gap-2 mb-4">
+                            <Key className="text-primary-500" size={24} />
+                            <h3 className="text-lg font-semibold">Set API Key</h3>
+                        </div>
+                        <p className="text-sm text-gray-400 mb-4">
+                            Enter your API key for {selectedProviderData?.name}
+                        </p>
+                        <input
+                            type="password"
+                            value={apiKey}
+                            onChange={(e) => setApiKey(e.target.value)}
+                            placeholder="sk-..."
+                            className="w-full bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 mb-4"
+                            autoFocus
+                        />
+                        <div className="flex gap-2 justify-end">
+                            <button
+                                onClick={() => {
+                                    setShowApiKeyModal(false);
+                                    setApiKey('');
+                                }}
+                                className="px-4 py-2 bg-dark-hover rounded hover:bg-dark-border transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSaveApiKey}
+                                className="px-4 py-2 bg-primary-600 hover:bg-primary-700 rounded transition-colors"
+                            >
+                                Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
