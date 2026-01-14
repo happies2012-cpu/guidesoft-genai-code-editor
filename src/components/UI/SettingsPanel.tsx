@@ -169,8 +169,8 @@ export default function SettingsPanel({ onClose }: SettingsPanelProps) {
                                         {aiProviders
                                             .find(p => p.id === selectedProvider)
                                             ?.models.map((model) => (
-                                                <option key={model.id} value={model.id}>
-                                                    {model.name}
+                                                <option key={model} value={model}>
+                                                    {model}
                                                 </option>
                                             ))}
                                     </select>

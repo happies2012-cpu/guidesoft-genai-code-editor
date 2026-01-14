@@ -5,7 +5,6 @@ export class InlineCompletionProvider implements monaco.languages.InlineCompleti
     private provider: string;
     private model: string;
     private debounceTimer: NodeJS.Timeout | null = null;
-    private lastCompletion: string = '';
 
     constructor(provider: string = 'anthropic', model: string = 'claude-sonnet-4-20250514') {
         this.provider = provider;
@@ -105,7 +104,7 @@ Provide only the code completion that should be inserted at the cursor position.
             // Remove any leading/trailing quotes
             completion = completion.replace(/^["']|["']$/g, '');
 
-            this.lastCompletion = completion;
+
 
             if (!completion) {
                 return undefined;
@@ -134,7 +133,7 @@ Provide only the code completion that should be inserted at the cursor position.
         }
     }
 
-    freeInlineCompletions(): void {
+    disposeInlineCompletions(_: monaco.languages.InlineCompletions): void {
         // Cleanup if needed
     }
 

@@ -65,7 +65,7 @@ interface EditorStore {
 
 export const useEditorStore = create<EditorStore>()(
     persist(
-        (set, get) => ({
+        (set) => ({
             // Git
             gitStatus: null,
             setGitStatus: (status) => set({ gitStatus: status }),
@@ -180,10 +180,10 @@ export const useEditorStore = create<EditorStore>()(
 
             // AI
             aiProviders: [
-                { id: 'anthropic', name: 'Anthropic Claude', models: ['claude-sonnet-4', 'claude-opus-4'] },
-                { id: 'openai', name: 'OpenAI', models: ['gpt-4', 'gpt-4-turbo'] },
-                { id: 'gemini', name: 'Google Gemini', models: ['gemini-pro', 'gemini-ultra'] },
-                { id: 'ollama', name: 'Ollama (Local)', models: ['codellama', 'deepseek-coder'] },
+                { id: 'anthropic', name: 'Anthropic Claude', models: ['claude-3-5-sonnet', 'claude-3-opus'], requiresApiKey: true },
+                { id: 'openai', name: 'OpenAI', models: ['gpt-4o', 'gpt-4-turbo'], requiresApiKey: true },
+                { id: 'gemini', name: 'Google Gemini', models: ['gemini-1.5-pro', 'gemini-1.5-flash'], requiresApiKey: true },
+                { id: 'ollama', name: 'Ollama (Local)', models: ['codellama', 'deepseek-coder'], requiresApiKey: false },
             ],
             selectedProvider: 'anthropic',
             aiMessages: [],

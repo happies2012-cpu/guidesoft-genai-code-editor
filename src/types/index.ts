@@ -24,6 +24,7 @@ export interface AIProvider {
     models: string[];
     apiKey?: string;
     endpoint?: string;
+    requiresApiKey: boolean;
 }
 
 export interface AIMessage {

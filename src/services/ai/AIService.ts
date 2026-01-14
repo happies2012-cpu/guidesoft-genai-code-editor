@@ -4,6 +4,8 @@ import { GeminiProvider } from './providers/gemini';
 import { OllamaProvider } from './providers/ollama';
 import type { AICompletionRequest, AICompletionResponse, AICompletionCallback } from './types';
 
+import { contextService } from './ContextService';
+
 class AIService {
     private anthropic = new AnthropicProvider();
     private openai = new OpenAIProvider();
@@ -51,7 +53,6 @@ class AIService {
     }
 
     private injectContext(request: AICompletionRequest): AICompletionRequest {
-        const { contextService } = require('./ContextService');
         const context = contextService.getContext();
 
         if (!context) return request;
@@ -62,7 +63,7 @@ ${context.fileTree}
 
 Key Files Summary:
 ${Object.entries(context.majorFiles)
-                .map(([path, content]) => `File: ${path}\n${content.substring(0, 300)}`)
+                .map(([path, content]) => `File: ${path}\n${(content as string).substring(0, 300)}`)
                 .join('\n')}
 ---
 `;

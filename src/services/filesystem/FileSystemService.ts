@@ -1,14 +1,19 @@
 // File System Service using File System Access API
 
+interface FileSystemAccessWindow extends Window {
+    showDirectoryPicker(options?: { mode?: 'read' | 'readwrite' }): Promise<FileSystemDirectoryHandle>;
+}
+
 export class FileSystemService {
     private directoryHandle: FileSystemDirectoryHandle | null = null;
 
     async openDirectory(): Promise<FileSystemDirectoryHandle> {
         try {
-            this.directoryHandle = await window.showDirectoryPicker({
+            const handle = await (window as unknown as FileSystemAccessWindow).showDirectoryPicker({
                 mode: 'readwrite',
             });
-            return this.directoryHandle;
+            this.directoryHandle = handle;
+            return handle;
         } catch (error) {
             throw new Error('Failed to open directory: ' + (error as Error).message);
         }
@@ -111,7 +116,7 @@ export class FileSystemService {
 
             const entries: { name: string; type: 'file' | 'directory' }[] = [];
 
-            for await (const entry of dirHandle.values()) {
+            for await (const entry of (dirHandle as unknown as AsyncIterable<FileSystemHandle>)) {
                 entries.push({
                     name: entry.name,
                     type: entry.kind === 'directory' ? 'directory' : 'file',

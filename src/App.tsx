@@ -20,7 +20,12 @@ function App() {
     toggleTerminal,
     toggleCommandPalette,
     setFileTree,
+    tabs,
+    activeTabId,
+    selectedProvider,
   } = useEditorStore();
+
+  const activeTab = tabs.find(t => t.id === activeTabId);
 
   useEffect(() => {
     // Set up demo file tree
@@ -244,26 +249,26 @@ function App() {
       <div className="flex items-center justify-between px-4 py-1 bg-dark-surface border-t border-dark-border text-xs">
         <div className="flex items-center gap-4">
           <span className="text-gray-400">
-            {activeTabId ? (tabs.find(t => t.id === activeTabId)?.isDirty ? 'Modified' : 'Saved') : 'Ready'}
+            {activeTab ? (activeTab.isDirty ? 'Modified' : 'Saved') : 'Ready'}
           </span>
           <span className="text-gray-600">|</span>
           <span className="text-gray-400 uppercase">
-            {activeTabId ? (tabs.find(t => t.id === activeTabId)?.language || 'Plain Text') : 'UTF-8'}
+            {activeTab ? (activeTab.language || 'Plain Text') : 'UTF-8'}
           </span>
           <span className="text-gray-600">|</span>
           <span className="text-gray-400">UTF-8</span>
         </div>
         <div className="flex items-center gap-4">
           <span className="text-gray-400">
-            {activeTabId ? (
-              `Ln ${tabs.find(t => t.id === activeTabId)?.cursorPosition?.line || 1}, Col ${tabs.find(t => t.id === activeTabId)?.cursorPosition?.column || 1}`
+            {activeTab ? (
+              `Ln ${activeTab.cursorPosition?.line || 1}, Col ${activeTab.cursorPosition?.column || 1}`
             ) : (
               'Ln 1, Col 1'
             )}
           </span>
           <div className="flex items-center gap-1.5 px-2 py-0.5 bg-primary-600/20 text-primary-500 rounded-full border border-primary-500/20">
             <Sparkles size={12} />
-            <span className="font-medium">{selectedProvider} AI</span>
+            <span className="font-medium">{(selectedProvider as string)} AI</span>
           </div>
         </div>
       </div>

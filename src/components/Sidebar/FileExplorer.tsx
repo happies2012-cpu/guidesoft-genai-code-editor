@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { FileText, Folder, FolderOpen, ChevronRight, ChevronDown, Plus, File, FolderPlus, Trash2, Edit } from 'lucide-react';
 import { useEditorStore } from '../../store/editorStore';
 import { fileSystemService } from '../../services/filesystem/FileSystemService';
-import type { FileTreeNode, EditorTab } from '../../types';
-import { getLanguageFromFilename, updateNodeChildren } from '../../utils/fileUtils';
+import type { FileTreeNode } from '../../types';
+import { updateNodeChildren } from '../../utils/fileUtils';
 
 export default function FileExplorer() {
-    const { fileTree, toggleNodeExpanded, addTab, setFileTree, openFile } = useEditorStore();
+    const { fileTree, toggleNodeExpanded, setFileTree, openFile } = useEditorStore();
     const [hoveredPath, setHoveredPath] = useState<string | null>(null);
     const [contextMenu, setContextMenu] = useState<{ x: number; y: number; node: FileTreeNode } | null>(null);
     const [showNewFileDialog, setShowNewFileDialog] = useState(false);
@@ -355,6 +355,4 @@ function Dialog({ title, children, onClose, onConfirm }: {
             </div>
         </div>
     );
-}
-
 }

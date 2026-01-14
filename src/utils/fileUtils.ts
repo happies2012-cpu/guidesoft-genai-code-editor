@@ -1,3 +1,5 @@
+import type { FileTreeNode } from '../types';
+
 export function getLanguageFromFilename(filename: string): string {
     const ext = filename.split('.').pop()?.toLowerCase();
     const languageMap: Record<string, string> = {
@@ -10,7 +12,7 @@ export function getLanguageFromFilename(filename: string): string {
     return languageMap[ext || ''] || 'plaintext';
 }
 
-export function updateNodeChildren(nodes: any[], path: string, children: any[]): any[] {
+export function updateNodeChildren(nodes: FileTreeNode[], path: string, children: FileTreeNode[]): FileTreeNode[] {
     return nodes.map((node) => {
         if (node.path === path) {
             return { ...node, children, isExpanded: true };

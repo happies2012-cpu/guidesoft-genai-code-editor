@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, MoreHorizontal } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useEditorStore } from '../../store/editorStore';
 
 export default function TabBar() {

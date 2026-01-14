@@ -14,20 +14,29 @@ export interface Diagnostic {
 class LSPService {
     private monaco: typeof monaco | null = null;
 
-    initialize(monaco: typeof monaco) {
-        this.monaco = monaco;
+    initialize(monacoInstance: typeof monaco) {
+        this.monaco = monacoInstance;
         console.log('LSP Service initialized');
 
         // Configure default TS/JS diagnostics
-        monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
-            noSemanticValidation: false,
-            noSyntaxValidation: false,
-        });
+        const languages = monacoInstance.languages as unknown as {
+            typescript: {
+                typescriptDefaults: { setDiagnosticsOptions: (options: unknown) => void };
+                javascriptDefaults: { setDiagnosticsOptions: (options: unknown) => void };
+            }
+        };
 
-        monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
-            noSemanticValidation: false,
-            noSyntaxValidation: false,
-        });
+        if (languages.typescript) {
+            languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+                noSemanticValidation: false,
+                noSyntaxValidation: false,
+            });
+
+            languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+                noSemanticValidation: false,
+                noSyntaxValidation: false,
+            });
+        }
     }
 
     // Manual diagnostic setting if needed
@@ -63,7 +72,8 @@ class LSPService {
                 // Simple eval-based syntax check (safe because it's just parsing)
                 // In a real app, use a worker with acorn or typescript compiler
                 new Function(content);
-            } catch (e: any) {
+            } catch (err: unknown) {
+                const e = err as { message: string; loc?: { line: number; column: number } };
                 if (e.loc) {
                     diagnostics.push({
                         message: e.message,

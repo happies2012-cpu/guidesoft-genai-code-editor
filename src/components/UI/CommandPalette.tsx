@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, File, FolderOpen, Settings, Terminal, Sparkles, Code } from 'lucide-react';
+import { Search, File, FolderOpen, Terminal, Sparkles, Code } from 'lucide-react';
 import { useEditorStore } from '../../store/editorStore';
 
 interface Command {
@@ -21,6 +21,7 @@ export default function CommandPalette({ onClose }: CommandPaletteProps) {
     const inputRef = useRef<HTMLInputElement>(null);
     const {
         toggleSidebar,
+        sidebarVisible,
         toggleTerminal,
         toggleAIChat,
         clearAIMessages,
