@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { EditorTab, FileTreeNode, AIProvider, AIMessage, TerminalSession, EditorSettings } from '../types';
+import type { EditorTab, FileTreeNode, AIProvider, AIMessage, TerminalSession, EditorSettings, GitStatus } from '../types';
 
 interface EditorStore {
     // Tabs
@@ -36,6 +36,11 @@ interface EditorStore {
     settings: EditorSettings;
     updateSettings: (updates: Partial<EditorSettings>) => void;
 
+    // Git
+    gitStatus: GitStatus | null;
+    setGitStatus: (status: GitStatus | null) => void;
+    refreshGitStatus: () => Promise<void>;
+
     // UI State
     sidebarVisible: boolean;
     terminalVisible: boolean;
@@ -50,6 +55,19 @@ interface EditorStore {
 export const useEditorStore = create<EditorStore>()(
     persist(
         (set) => ({
+            // Git
+            gitStatus: null,
+            setGitStatus: (status) => set({ gitStatus: status }),
+            refreshGitStatus: async () => {
+                try {
+                    // Logic to fetch git status via run_command would go here in a real app
+                    // For now, we'll simulate a refresh or use a mock status
+                    console.log('Refreshing Git status...');
+                } catch (error) {
+                    console.error('Git refresh error:', error);
+                }
+            },
+
             // Tabs
             tabs: [],
             activeTabId: null,

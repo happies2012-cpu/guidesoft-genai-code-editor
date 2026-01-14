@@ -106,6 +106,28 @@ export default function CommandPalette({ onClose }: CommandPaletteProps) {
             },
             keywords: ['new', 'create', 'file'],
         },
+        {
+            id: 'git-commit',
+            label: 'Git: Commit All',
+            description: 'Commit all changes to the repository',
+            icon: <Code size={16} />,
+            action: () => {
+                alert('Commit feature coming soon! Changes are automatically tracked by the agent.');
+                onClose();
+            },
+            keywords: ['git', 'commit', 'save', 'version'],
+        },
+        {
+            id: 'git-push',
+            label: 'Git: Push',
+            description: 'Push committed changes to remote',
+            icon: <Code size={16} />,
+            action: () => {
+                alert('Push feature coming soon!');
+                onClose();
+            },
+            keywords: ['git', 'push', 'upload', 'remote'],
+        },
         ...tabs.map((tab) => ({
             id: `open-${tab.id}`,
             label: `Open: ${tab.filename}`,

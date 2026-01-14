@@ -187,6 +187,14 @@ export default function FileExplorer() {
             ? node.isExpanded ? FolderOpen : Folder
             : FileText;
 
+        // Determine color based on git status
+        const { gitStatus } = useEditorStore.getState();
+        let statusColor = 'text-gray-400';
+        if (gitStatus?.modified.some(p => node.path.includes(p))) statusColor = 'text-yellow-500';
+        if (gitStatus?.added.some(p => node.path.includes(p))) statusColor = 'text-green-500';
+        if (gitStatus?.deleted.some(p => node.path.includes(p))) statusColor = 'text-red-500';
+        if (gitStatus?.untracked.some(p => node.path.includes(p))) statusColor = 'text-gray-500';
+
         return (
             <div key={node.path}>
                 <div
@@ -202,8 +210,8 @@ export default function FileExplorer() {
                             {node.isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                         </span>
                     )}
-                    <Icon size={16} className={node.type === 'directory' ? 'text-primary-500' : 'text-gray-400'} />
-                    <span className="text-sm">{node.name}</span>
+                    <Icon size={16} className={node.type === 'directory' ? 'text-primary-500' : statusColor} />
+                    <span className={`text-sm ${statusColor === 'text-gray-400' ? 'text-white' : statusColor}`}>{node.name}</span>
                 </div>
                 {node.type === 'directory' && node.isExpanded && node.children && (
                     <div>
