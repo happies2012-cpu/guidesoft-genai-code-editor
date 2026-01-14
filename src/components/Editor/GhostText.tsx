@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 
 interface GhostTextProps {
     suggestion: string;
@@ -35,7 +35,7 @@ export const GhostText: React.FC<GhostTextProps> = ({ suggestion, onAccept, onRe
 
 // AI Autocomplete Service
 export const aiAutocompleteService = {
-    getSuggestion: async (code: string, cursorPosition: number): Promise<string> => {
+    getSuggestion: async (): Promise<string> => {
         // Simulate AI suggestion
         await new Promise(r => setTimeout(r, 300));
 
