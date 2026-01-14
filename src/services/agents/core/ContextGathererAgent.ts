@@ -16,8 +16,8 @@ export class ContextGathererAgent extends BaseAgent {
         // 1. Get Open Files Context
         await contextService.refreshContext();
         const tabs = useEditorStore.getState().tabs;
-        const openFiles = tabs.map(t => ({ // Map to simpler structure
-            path: t.filepath,
+        const openFiles = tabs.map((t: any) => ({ // Map to simpler structure
+            path: t.path || t.filepath,
             content: t.content
         }));
 

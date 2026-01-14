@@ -3,6 +3,7 @@ import { X, Settings as SettingsIcon, Sparkles, Code, Terminal, Palette, Store, 
 import { useEditorStore } from '../../store/editorStore';
 import { ThemeMarketplace } from '../Settings/ThemeMarketplace';
 import { MCPPluginManager } from '../Settings/MCPPluginManager';
+import type { AIProvider } from '../../types';
 
 interface SettingsPanelProps {
     onClose: () => void;
@@ -173,7 +174,7 @@ export default function SettingsPanel({ onClose }: SettingsPanelProps) {
                                         ))}
                                     </select>
                                     <p className="text-xs text-gray-500 mt-1">
-                                        Selected: {aiProviders.find(p => p.id === selectedProvider)?.name}
+                                        Selected: {aiProviders.find((p: AIProvider) => p.id === selectedProvider)?.name}
                                     </p>
                                 </div>
 
@@ -185,8 +186,8 @@ export default function SettingsPanel({ onClose }: SettingsPanelProps) {
                                         className="w-full bg-dark-bg border border-dark-border rounded px-3 py-2 text-sm"
                                     >
                                         {aiProviders
-                                            .find(p => p.id === selectedProvider)
-                                            ?.models.map((model) => (
+                                            .find((p: AIProvider) => p.id === selectedProvider)
+                                            ?.models.map((model: string) => (
                                                 <option key={model} value={model}>
                                                     {model}
                                                 </option>
@@ -200,7 +201,7 @@ export default function SettingsPanel({ onClose }: SettingsPanelProps) {
                                         Configure your API keys in the AI Chat panel (click the Settings icon)
                                     </p>
                                     <div className="space-y-2">
-                                        {aiProviders.map((provider) => (
+                                        {aiProviders.map((provider: AIProvider) => (
                                             <div key={provider.id} className="flex items-center justify-between text-xs">
                                                 <span>{provider.name}</span>
                                                 <span className={provider.requiresApiKey ? 'text-yellow-500' : 'text-green-500'}>

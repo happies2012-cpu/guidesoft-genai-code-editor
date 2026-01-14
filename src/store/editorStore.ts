@@ -61,6 +61,7 @@ interface EditorStore {
     toggleTerminal: () => void;
     toggleAIChat: () => void;
     toggleCommandPalette: () => void;
+    setCommandPaletteOpen: (isOpen: boolean) => void;
     sidebarView: 'files' | 'search' | 'git';
     setSidebarView: (view: 'files' | 'search' | 'git') => void;
 
@@ -257,6 +258,7 @@ export const useEditorStore = create<EditorStore>()(
             toggleAIChat: () => set((state) => ({ aiChatVisible: !state.aiChatVisible })),
             toggleCommandPalette: () =>
                 set((state) => ({ commandPaletteOpen: !state.commandPaletteOpen })),
+            setCommandPaletteOpen: (isOpen) => set({ commandPaletteOpen: isOpen }),
 
             // Sidebar View
             sidebarView: 'files',

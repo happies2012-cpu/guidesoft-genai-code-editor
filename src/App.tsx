@@ -2,13 +2,12 @@ import { useEffect, useState } from 'react';
 import { Play, Settings, Bot, Sparkles, FolderTree, Terminal as TerminalIcon, GitBranch } from 'lucide-react';
 import EditorContainer from './components/Editor/EditorContainer';
 import FileExplorer from './components/Sidebar/FileExplorer';
-import AIChat from './components/Sidebar/AIChat';
 import { SearchPanel } from './components/Sidebar/SearchPanel';
 import { GitPanel } from './components/Sidebar/GitPanel';
 import { PreviewPanel } from './components/Preview/PreviewPanel';
 import TerminalComponent from './components/Terminal/TerminalComponent';
 import SettingsPanel from './components/UI/SettingsPanel';
-import CommandPalette from './components/UI/CommandPalette';
+// CommandPalette import removed from UI/CommandPalette to avoid duplication
 import { useEditorStore } from './store/editorStore';
 import AgentStatusPanel from './components/Sidebar/AgentStatusPanel';
 import ApprovalModal from './components/UI/ApprovalModal';
@@ -19,9 +18,12 @@ import { DashboardOverview } from './components/Admin/DashboardOverview';
 import { UserManagement } from './components/Admin/UserManagement';
 import { VendorManagement } from './components/Admin/VendorManagement';
 import { AppBuilderWizard } from './components/Builder/AppBuilderWizard';
-import { InlineAIOverlay } from './components/Editor/InlineAIOverlay';
-import { HeroSection } from './components/Marketing/HeroSection';
+import { InlineAIEdit } from './components/Editor/InlineAIEdit';
+import { EnhancedHeroSection } from './components/Marketing/EnhancedHeroSection';
+import { AILandingDemo } from './components/Marketing/AILandingDemo';
 import { NewPricing } from './components/Marketing/NewPricing';
+import { CommandPalette } from './components/Editor/CommandPalette';
+import { AIChatPanel } from './components/Editor/AIChatPanel';
 import { Minimap } from './components/UI/Advanced/Minimap';
 import { LoginPage } from './components/Auth/LoginPage';
 import { SignupPage } from './components/Auth/SignupPage';
@@ -42,7 +44,7 @@ function App() {
     toggleSidebar,
     toggleAIChat,
     toggleTerminal,
-    toggleCommandPalette,
+    setCommandPaletteOpen,
     setFileTree,
     tabs,
     activeTabId,
@@ -138,7 +140,8 @@ function App() {
       >
         {marketingPage === 'landing' && (
           <>
-            <HeroSection onGetStarted={() => setView('login')} />
+            <EnhancedHeroSection />
+            <AILandingDemo />
             <Features />
           </>
         )}
@@ -195,7 +198,7 @@ function App() {
               </button>
               <div className="absolute left-0 top-full mt-1 w-48 bg-dark-surface border border-dark-border rounded shadow-xl hidden group-hover:block z-50">
                 <button
-                  onClick={() => toggleCommandPalette()}
+                  onClick={() => setCommandPaletteOpen(true)}
                   className="w-full text-left px-4 py-2 hover:bg-primary-600 text-sm flex justify-between items-center"
                 >
                   <span>Command Palette</span>
@@ -459,11 +462,10 @@ function App() {
         )}
 
         {/* Right: AI Chat */}
-        {aiChatVisible && (
-          <div className="w-96 flex-shrink-0 border-l border-dark-border">
-            <AIChat />
-          </div>
-        )}
+        <AIChatPanel
+          isOpen={aiChatVisible}
+          onClose={toggleAIChat}
+        />
       </div>
 
       {/* Status Bar */}
@@ -498,10 +500,22 @@ function App() {
       {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
 
       {/* Command Palette */}
-      {commandPaletteOpen && <CommandPalette onClose={toggleCommandPalette} />}
+      <CommandPalette
+        isOpen={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+        onExecute={(cmd) => {
+          console.log('Execute:', cmd);
+          setCommandPaletteOpen(false);
+        }}
+      />
 
       {/* Inline AI Overlay */}
-      <InlineAIOverlay visible={showInlineAI} onClose={() => setShowInlineAI(false)} />
+      <InlineAIEdit
+        isOpen={showInlineAI}
+        onClose={() => setShowInlineAI(false)}
+        selectedText="" // Todo: connect to editor selection
+        onReplace={(text) => console.log('Replace:', text)}
+      />
 
       {/* Agent Approval Gate */}
       <ApprovalModal />
