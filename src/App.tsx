@@ -1,0 +1,194 @@
+import { useEffect } from 'react';
+import { Sparkles, FolderTree, Terminal as TerminalIcon, Settings } from 'lucide-react';
+import EditorContainer from './components/Editor/EditorContainer';
+import FileExplorer from './components/Sidebar/FileExplorer';
+import AIChat from './components/Sidebar/AIChat';
+import { useEditorStore } from './store/editorStore';
+
+function App() {
+  const {
+    sidebarVisible,
+    aiChatVisible,
+    terminalVisible,
+    toggleSidebar,
+    toggleAIChat,
+    toggleTerminal,
+    setFileTree,
+  } = useEditorStore();
+
+  useEffect(() => {
+    // Set up demo file tree
+    setFileTree([
+      {
+        name: 'src',
+        path: '/src',
+        type: 'directory',
+        isExpanded: true,
+        children: [
+          {
+            name: 'components',
+            path: '/src/components',
+            type: 'directory',
+            isExpanded: false,
+            children: [
+              { name: 'App.tsx', path: '/src/components/App.tsx', type: 'file' },
+              { name: 'Header.tsx', path: '/src/components/Header.tsx', type: 'file' },
+            ],
+          },
+          { name: 'index.tsx', path: '/src/index.tsx', type: 'file' },
+          { name: 'App.css', path: '/src/App.css', type: 'file' },
+        ],
+      },
+      {
+        name: 'public',
+        path: '/public',
+        type: 'directory',
+        isExpanded: false,
+        children: [
+          { name: 'index.html', path: '/public/index.html', type: 'file' },
+        ],
+      },
+      { name: 'package.json', path: '/package.json', type: 'file' },
+      { name: 'README.md', path: '/README.md', type: 'file' },
+    ]);
+
+    // Set up keyboard shortcuts
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
+        e.preventDefault();
+        toggleSidebar();
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === '`') {
+        e.preventDefault();
+        toggleTerminal();
+      }
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'a') {
+        e.preventDefault();
+        toggleAIChat();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [setFileTree, toggleSidebar, toggleTerminal, toggleAIChat]);
+
+  return (
+    <div className="flex flex-col h-screen bg-dark-bg text-white">
+      {/* Top Menu Bar */}
+      <div className="flex items-center justify-between px-4 py-2 bg-dark-surface border-b border-dark-border">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="GUIDESOFT GENAI" className="h-8 w-auto" />
+            <h1 className="text-lg font-bold">GUIDESOFT GENAI</h1>
+          </div>
+          <nav className="flex items-center gap-1 text-sm">
+            <button className="px-3 py-1 hover:bg-dark-hover rounded transition-colors">
+              File
+            </button>
+            <button className="px-3 py-1 hover:bg-dark-hover rounded transition-colors">
+              Edit
+            </button>
+            <button className="px-3 py-1 hover:bg-dark-hover rounded transition-colors">
+              View
+            </button>
+            <button className="px-3 py-1 hover:bg-dark-hover rounded transition-colors">
+              AI
+            </button>
+          </nav>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggleAIChat}
+            className={`p-2 rounded transition-colors ${aiChatVisible ? 'bg-primary-600 text-white' : 'hover:bg-dark-hover'
+              }`}
+            title="Toggle AI Chat (Cmd/Ctrl+Shift+A)"
+          >
+            <Sparkles size={18} />
+          </button>
+          <button
+            onClick={toggleSidebar}
+            className={`p-2 rounded transition-colors ${sidebarVisible ? 'bg-dark-hover' : 'hover:bg-dark-hover'
+              }`}
+            title="Toggle Sidebar (Cmd/Ctrl+B)"
+          >
+            <FolderTree size={18} />
+          </button>
+          <button
+            onClick={toggleTerminal}
+            className={`p-2 rounded transition-colors ${terminalVisible ? 'bg-dark-hover' : 'hover:bg-dark-hover'
+              }`}
+            title="Toggle Terminal (Cmd/Ctrl+`)"
+          >
+            <TerminalIcon size={18} />
+          </button>
+          <button className="p-2 hover:bg-dark-hover rounded transition-colors" title="Settings">
+            <Settings size={18} />
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left Sidebar */}
+        {sidebarVisible && (
+          <div className="w-64 flex-shrink-0">
+            <FileExplorer />
+          </div>
+        )}
+
+        {/* Editor */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className={terminalVisible ? 'h-2/3' : 'h-full'}>
+            <EditorContainer />
+          </div>
+
+          {/* Terminal Panel */}
+          {terminalVisible && (
+            <div className="h-1/3 border-t border-dark-border bg-dark-surface">
+              <div className="flex items-center justify-between px-4 py-2 border-b border-dark-border">
+                <div className="flex items-center gap-2">
+                  <TerminalIcon size={16} />
+                  <span className="text-sm font-semibold">Terminal</span>
+                </div>
+                <button
+                  onClick={toggleTerminal}
+                  className="text-xs text-gray-500 hover:text-white"
+                >
+                  Close
+                </button>
+              </div>
+              <div className="p-4 font-mono text-sm">
+                <p className="text-gray-400">$ Terminal integration coming soon...</p>
+                <p className="text-gray-600 text-xs mt-2">
+                  Phase 3 will include full xterm.js integration with multi-tab support
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right Sidebar - AI Chat */}
+        {aiChatVisible && (
+          <div className="w-96 flex-shrink-0">
+            <AIChat />
+          </div>
+        )}
+      </div>
+
+      {/* Status Bar */}
+      <div className="flex items-center justify-between px-4 py-1 bg-dark-surface border-t border-dark-border text-xs">
+        <div className="flex items-center gap-4">
+          <span className="text-gray-400">Ready</span>
+          <span className="text-gray-600">|</span>
+          <span className="text-gray-400">UTF-8</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <span className="text-gray-400">Ln 1, Col 1</span>
+          <span className="text-primary-500">AI Ready</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default App;

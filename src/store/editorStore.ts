@@ -1,0 +1,175 @@
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import type { EditorTab, FileTreeNode, AIProvider, AIMessage, TerminalSession, EditorSettings } from '../types';
+
+interface EditorStore {
+    // Tabs
+    tabs: EditorTab[];
+    activeTabId: string | null;
+    addTab: (tab: EditorTab) => void;
+    removeTab: (tabId: string) => void;
+    updateTab: (tabId: string, updates: Partial<EditorTab>) => void;
+    setActiveTab: (tabId: string) => void;
+
+    // File Tree
+    fileTree: FileTreeNode[];
+    setFileTree: (tree: FileTreeNode[]) => void;
+    toggleNodeExpanded: (path: string) => void;
+
+    // AI
+    aiProviders: AIProvider[];
+    selectedProvider: string;
+    aiMessages: AIMessage[];
+    addAIMessage: (message: AIMessage) => void;
+    clearAIMessages: () => void;
+    setSelectedProvider: (providerId: string) => void;
+    updateProviderApiKey: (providerId: string, apiKey: string) => void;
+
+    // Terminal
+    terminals: TerminalSession[];
+    activeTerminalId: string | null;
+    addTerminal: (terminal: TerminalSession) => void;
+    removeTerminal: (terminalId: string) => void;
+    setActiveTerminal: (terminalId: string) => void;
+
+    // Settings
+    settings: EditorSettings;
+    updateSettings: (updates: Partial<EditorSettings>) => void;
+
+    // UI State
+    sidebarVisible: boolean;
+    terminalVisible: boolean;
+    aiChatVisible: boolean;
+    commandPaletteOpen: boolean;
+    toggleSidebar: () => void;
+    toggleTerminal: () => void;
+    toggleAIChat: () => void;
+    toggleCommandPalette: () => void;
+}
+
+export const useEditorStore = create<EditorStore>()(
+    persist(
+        (set) => ({
+            // Tabs
+            tabs: [],
+            activeTabId: null,
+            addTab: (tab) =>
+                set((state) => ({
+                    tabs: [...state.tabs, tab],
+                    activeTabId: tab.id,
+                })),
+            removeTab: (tabId) =>
+                set((state) => {
+                    const newTabs = state.tabs.filter((t) => t.id !== tabId);
+                    const newActiveId =
+                        state.activeTabId === tabId
+                            ? newTabs[newTabs.length - 1]?.id || null
+                            : state.activeTabId;
+                    return { tabs: newTabs, activeTabId: newActiveId };
+                }),
+            updateTab: (tabId, updates) =>
+                set((state) => ({
+                    tabs: state.tabs.map((t) => (t.id === tabId ? { ...t, ...updates } : t)),
+                })),
+            setActiveTab: (tabId) => set({ activeTabId: tabId }),
+
+            // File Tree
+            fileTree: [],
+            setFileTree: (tree) => set({ fileTree: tree }),
+            toggleNodeExpanded: (path) =>
+                set((state) => ({
+                    fileTree: toggleNodeInTree(state.fileTree, path),
+                })),
+
+            // AI
+            aiProviders: [
+                { id: 'anthropic', name: 'Anthropic Claude', models: ['claude-sonnet-4', 'claude-opus-4'] },
+                { id: 'openai', name: 'OpenAI', models: ['gpt-4', 'gpt-4-turbo'] },
+                { id: 'gemini', name: 'Google Gemini', models: ['gemini-pro', 'gemini-ultra'] },
+                { id: 'ollama', name: 'Ollama (Local)', models: ['codellama', 'deepseek-coder'] },
+            ],
+            selectedProvider: 'anthropic',
+            aiMessages: [],
+            addAIMessage: (message) =>
+                set((state) => ({
+                    aiMessages: [...state.aiMessages, message],
+                })),
+            clearAIMessages: () => set({ aiMessages: [] }),
+            setSelectedProvider: (providerId) => set({ selectedProvider: providerId }),
+            updateProviderApiKey: (providerId, apiKey) =>
+                set((state) => ({
+                    aiProviders: state.aiProviders.map((p) =>
+                        p.id === providerId ? { ...p, apiKey } : p
+                    ),
+                })),
+
+            // Terminal
+            terminals: [],
+            activeTerminalId: null,
+            addTerminal: (terminal) =>
+                set((state) => ({
+                    terminals: [...state.terminals, terminal],
+                    activeTerminalId: terminal.id,
+                })),
+            removeTerminal: (terminalId) =>
+                set((state) => {
+                    const newTerminals = state.terminals.filter((t) => t.id !== terminalId);
+                    const newActiveId =
+                        state.activeTerminalId === terminalId
+                            ? newTerminals[newTerminals.length - 1]?.id || null
+                            : state.activeTerminalId;
+                    return { terminals: newTerminals, activeTerminalId: newActiveId };
+                }),
+            setActiveTerminal: (terminalId) => set({ activeTerminalId: terminalId }),
+
+            // Settings
+            settings: {
+                theme: 'dark',
+                fontSize: 14,
+                tabSize: 2,
+                wordWrap: true,
+                minimap: true,
+                lineNumbers: true,
+                autoSave: true,
+                aiProvider: 'anthropic',
+                aiModel: 'claude-sonnet-4',
+            },
+            updateSettings: (updates) =>
+                set((state) => ({
+                    settings: { ...state.settings, ...updates },
+                })),
+
+            // UI State
+            sidebarVisible: true,
+            terminalVisible: true,
+            aiChatVisible: false,
+            commandPaletteOpen: false,
+            toggleSidebar: () => set((state) => ({ sidebarVisible: !state.sidebarVisible })),
+            toggleTerminal: () => set((state) => ({ terminalVisible: !state.terminalVisible })),
+            toggleAIChat: () => set((state) => ({ aiChatVisible: !state.aiChatVisible })),
+            toggleCommandPalette: () =>
+                set((state) => ({ commandPaletteOpen: !state.commandPaletteOpen })),
+        }),
+        {
+            name: 'ai-code-editor-storage',
+            partialize: (state) => ({
+                settings: state.settings,
+                aiProviders: state.aiProviders,
+                selectedProvider: state.selectedProvider,
+            }),
+        }
+    )
+);
+
+// Helper function to toggle node expansion in tree
+function toggleNodeInTree(nodes: FileTreeNode[], path: string): FileTreeNode[] {
+    return nodes.map((node) => {
+        if (node.path === path) {
+            return { ...node, isExpanded: !node.isExpanded };
+        }
+        if (node.children) {
+            return { ...node, children: toggleNodeInTree(node.children, path) };
+        }
+        return node;
+    });
+}
