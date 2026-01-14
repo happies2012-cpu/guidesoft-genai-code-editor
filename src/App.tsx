@@ -13,16 +13,20 @@ import { useEditorStore } from './store/editorStore';
 import AgentStatusPanel from './components/Sidebar/AgentStatusPanel';
 import ApprovalModal from './components/UI/ApprovalModal';
 import { MarketingLayout } from './components/Marketing/MarketingLayout';
-import { LandingPage } from './components/Marketing/LandingPage';
-import { PricingPage } from './components/Marketing/PricingPage';
 import { FAQPage } from './components/Marketing/FAQPage';
 import { AdminLayout } from './components/Admin/AdminLayout';
 import { DashboardOverview } from './components/Admin/DashboardOverview';
 import { UserManagement } from './components/Admin/UserManagement';
 import { VendorManagement } from './components/Admin/VendorManagement';
+import { AppBuilderWizard } from './components/Builder/AppBuilderWizard';
+import { InlineAIOverlay } from './components/Editor/InlineAIOverlay';
+import { HeroSection } from './components/Marketing/HeroSection';
+import { Pricing } from './components/Marketing/Pricing';
+import { Minimap } from './components/UI/Advanced/Minimap';
 
 function App() {
-  const [view, setView] = useState<'editor' | 'marketing' | 'admin'>('marketing');
+  const [view, setView] = useState<'editor' | 'marketing' | 'admin' | 'builder'>('marketing');
+  const [showInlineAI, setShowInlineAI] = useState(false);
   const [marketingPage, setMarketingPage] = useState<'landing' | 'pricing' | 'faq'>('landing');
   const [adminPage, setAdminPage] = useState<'overview' | 'users' | 'vendors' | 'settings'>('overview');
   const [showSettings, setShowSettings] = useState(false);
@@ -98,6 +102,11 @@ function App() {
         e.preventDefault();
         toggleAIChat();
       }
+      // Toggle Inline AI (Cmd+K)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowInlineAI(prev => !prev);
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -111,8 +120,8 @@ function App() {
         onNavigate={setMarketingPage}
         onGetStarted={() => setView('editor')}
       >
-        {marketingPage === 'landing' && <LandingPage onGetStarted={() => setView('editor')} />}
-        {marketingPage === 'pricing' && <PricingPage onGetStarted={() => setView('editor')} />}
+        {marketingPage === 'landing' && <HeroSection onGetStarted={() => setView('editor')} />}
+        {marketingPage === 'pricing' && <Pricing />}
         {marketingPage === 'faq' && <FAQPage />}
       </MarketingLayout>
     );
@@ -130,6 +139,20 @@ function App() {
         {adminPage === 'vendors' && <VendorManagement />}
         {adminPage === 'settings' && <div className="p-8 text-gray-400">Settings coming soon...</div>}
       </AdminLayout>
+    );
+  }
+
+  if (view === 'builder') {
+    return (
+      <div className="h-screen w-full relative">
+        <button
+          onClick={() => setView('marketing')}
+          className="absolute top-4 right-4 z-50 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white"
+        >
+          ✕
+        </button>
+        <AppBuilderWizard />
+      </div>
     );
   }
 
@@ -220,6 +243,12 @@ function App() {
                   onClick={() => setView('admin')}
                 >
                   Admin Dashboard
+                </button>
+                <button
+                  className="w-full text-left px-4 py-2 hover:bg-primary-600 text-sm"
+                  onClick={() => setView('builder')}
+                >
+                  App Builder AI
                 </button>
               </div>
             </div>
@@ -322,7 +351,12 @@ function App() {
         )}
 
         {/* Center: Editor & Terminal */}
-        <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+        <div className="flex-1 flex flex-col overflow-hidden min-w-0 relative">
+          {/* Advanced UI: Minimap Overlay */}
+          <div className="absolute right-0 top-0 bottom-0 z-10 pointer-events-none">
+            <Minimap />
+          </div>
+
           <div className={terminalVisible ? 'h-2/3' : 'h-full border-b border-dark-border'}>
             {activeTabId ? <EditorContainer /> : (
               <div className="flex-1 h-full flex items-center justify-center text-gray-500 bg-dark-bg">
@@ -411,6 +445,9 @@ function App() {
 
       {/* Command Palette */}
       {commandPaletteOpen && <CommandPalette onClose={toggleCommandPalette} />}
+
+      {/* Inline AI Overlay */}
+      <InlineAIOverlay visible={showInlineAI} onClose={() => setShowInlineAI(false)} />
 
       {/* Agent Approval Gate */}
       <ApprovalModal />
