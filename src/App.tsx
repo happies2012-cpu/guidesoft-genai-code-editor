@@ -21,7 +21,7 @@ import { VendorManagement } from './components/Admin/VendorManagement';
 import { AppBuilderWizard } from './components/Builder/AppBuilderWizard';
 import { InlineAIOverlay } from './components/Editor/InlineAIOverlay';
 import { HeroSection } from './components/Marketing/HeroSection';
-import { Pricing } from './components/Marketing/Pricing';
+import { NewPricing } from './components/Marketing/NewPricing';
 import { Minimap } from './components/UI/Advanced/Minimap';
 import { LoginPage } from './components/Auth/LoginPage';
 import { SignupPage } from './components/Auth/SignupPage';
@@ -142,7 +142,7 @@ function App() {
             <Features />
           </>
         )}
-        {marketingPage === 'pricing' && <Pricing />}
+        {marketingPage === 'pricing' && <NewPricing />}
         {marketingPage === 'faq' && <FAQPage />}
       </MarketingLayout>
     );
