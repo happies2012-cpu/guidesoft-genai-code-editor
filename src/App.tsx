@@ -3,6 +3,7 @@ import { Sparkles, FolderTree, Terminal as TerminalIcon, Settings } from 'lucide
 import EditorContainer from './components/Editor/EditorContainer';
 import FileExplorer from './components/Sidebar/FileExplorer';
 import AIChat from './components/Sidebar/AIChat';
+import TerminalComponent from './components/Terminal/TerminalComponent';
 import { useEditorStore } from './store/editorStore';
 
 function App() {
@@ -144,8 +145,8 @@ function App() {
 
           {/* Terminal Panel */}
           {terminalVisible && (
-            <div className="h-1/3 border-t border-dark-border bg-dark-surface">
-              <div className="flex items-center justify-between px-4 py-2 border-b border-dark-border">
+            <div className="h-1/3 border-t border-dark-border bg-dark-bg flex flex-col">
+              <div className="flex items-center justify-between px-4 py-2 border-b border-dark-border bg-dark-surface">
                 <div className="flex items-center gap-2">
                   <TerminalIcon size={16} />
                   <span className="text-sm font-semibold">Terminal</span>
@@ -157,11 +158,8 @@ function App() {
                   Close
                 </button>
               </div>
-              <div className="p-4 font-mono text-sm">
-                <p className="text-gray-400">$ Terminal integration coming soon...</p>
-                <p className="text-gray-600 text-xs mt-2">
-                  Phase 3 will include full xterm.js integration with multi-tab support
-                </p>
+              <div className="flex-1 overflow-hidden">
+                <TerminalComponent terminalId="main-terminal" />
               </div>
             </div>
           )}
