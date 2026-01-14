@@ -1,5 +1,6 @@
 import TabBar from './TabBar';
 import MonacoEditor from './MonacoEditor';
+import Breadcrumbs from './Breadcrumbs';
 import { useEditorStore } from '../../store/editorStore';
 
 export default function EditorContainer() {
@@ -18,6 +19,7 @@ export default function EditorContainer() {
     return (
         <div className="flex flex-col h-full bg-dark-bg">
             <TabBar />
+            <Breadcrumbs />
             <div className="flex-1 overflow-hidden">
                 {activeTab ? (
                     <MonacoEditor
