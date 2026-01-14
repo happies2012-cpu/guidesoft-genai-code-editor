@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Shield, Key, Cpu, Zap, LogOut } from 'lucide-react';
 
 export const UserDashboard: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
-    const [activeTab, setActiveTab] = useState<'overview' | 'security' | 'ai'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'security' | 'ai' | 'deploy'>('overview');
 
     return (
         <div className="flex h-screen bg-[#050505] text-white font-sans">
@@ -121,6 +121,28 @@ export const UserDashboard: React.FC<{ onLogout: () => void }> = ({ onLogout }) 
                                     <span>Auto-Debug on Error</span>
                                     <input type="checkbox" defaultChecked className="toggle" />
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'deploy' && (
+                    <div className="max-w-2xl animate-fade-in">
+                        <h2 className="text-3xl font-bold mb-6">Deployment</h2>
+                        <div className="bg-white/5 rounded-xl border border-white/10 p-6">
+                            <h3 className="font-bold mb-4">Quick Deploy</h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm text-gray-400 mb-1">Environment</label>
+                                    <select className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3">
+                                        <option>Production</option>
+                                        <option>Staging</option>
+                                        <option>Development</option>
+                                    </select>
+                                </div>
+                                <button className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg font-bold hover:from-blue-700 hover:to-purple-700">
+                                    Deploy Now
+                                </button>
                             </div>
                         </div>
                     </div>
