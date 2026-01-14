@@ -23,9 +23,12 @@ import { InlineAIOverlay } from './components/Editor/InlineAIOverlay';
 import { HeroSection } from './components/Marketing/HeroSection';
 import { Pricing } from './components/Marketing/Pricing';
 import { Minimap } from './components/UI/Advanced/Minimap';
+import { LoginPage } from './components/Auth/LoginPage';
+import { Features } from './components/Marketing/MarketingComponents';
+import { UserDashboard } from './components/User/UserDashboard';
 
 function App() {
-  const [view, setView] = useState<'editor' | 'marketing' | 'admin' | 'builder'>('marketing');
+  const [view, setView] = useState<'editor' | 'marketing' | 'admin' | 'builder' | 'login' | 'dashboard'>('marketing');
   const [showInlineAI, setShowInlineAI] = useState(false);
   const [marketingPage, setMarketingPage] = useState<'landing' | 'pricing' | 'faq'>('landing');
   const [adminPage, setAdminPage] = useState<'overview' | 'users' | 'vendors' | 'settings'>('overview');
@@ -113,14 +116,27 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [setFileTree, toggleSidebar, toggleTerminal, toggleAIChat]);
 
+  if (view === 'login') {
+    return <LoginPage onLogin={() => setView('dashboard')} />; // Redirect to Dashboard
+  }
+
+  if (view === 'dashboard') {
+    return <UserDashboard onLogout={() => setView('marketing')} />;
+  }
+
   if (view === 'marketing') {
     return (
       <MarketingLayout
         currentPage={marketingPage}
         onNavigate={setMarketingPage}
-        onGetStarted={() => setView('editor')}
+        onGetStarted={() => setView('login')} // Redirect to Login instead of Editor
       >
-        {marketingPage === 'landing' && <HeroSection onGetStarted={() => setView('editor')} />}
+        {marketingPage === 'landing' && (
+          <>
+            <HeroSection onGetStarted={() => setView('login')} />
+            <Features />
+          </>
+        )}
         {marketingPage === 'pricing' && <Pricing />}
         {marketingPage === 'faq' && <FAQPage />}
       </MarketingLayout>
@@ -360,9 +376,42 @@ function App() {
           <div className={terminalVisible ? 'h-2/3' : 'h-full border-b border-dark-border'}>
             {activeTabId ? <EditorContainer /> : (
               <div className="flex-1 h-full flex items-center justify-center text-gray-500 bg-dark-bg">
-                <div className="text-center">
-                  <p className="text-xl mb-4">Welcome to GuideSoft GenAI Editor</p>
-                  <p className="text-sm">Select a file to start editing</p>
+                <div className="text-center max-w-2xl px-8">
+                  <div className="mb-8">
+                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 mb-6">
+                      <Sparkles size={40} className="text-white" />
+                    </div>
+                    <p className="text-2xl font-bold mb-3 text-white">Welcome to GuideSoft GenAI Editor</p>
+                    <p className="text-gray-400 mb-8">Start by opening a file or generate code with AI</p>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <button
+                      onClick={() => toggleAIChat()}
+                      className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/50 transition-all hover:scale-105 flex items-center gap-3"
+                    >
+                      <Sparkles size={20} />
+                      Generate with AI
+                    </button>
+                    <button
+                      onClick={() => { if (!sidebarVisible) toggleSidebar(); }}
+                      className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-colors flex items-center gap-3"
+                    >
+                      <FolderTree size={20} />
+                      Open File
+                    </button>
+                  </div>
+
+                  <div className="mt-12 grid grid-cols-2 gap-4 text-left">
+                    <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+                      <div className="text-blue-400 font-bold mb-2">⌘K</div>
+                      <div className="text-sm text-gray-400">Inline AI editing</div>
+                    </div>
+                    <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+                      <div className="text-blue-400 font-bold mb-2">⌘⇧A</div>
+                      <div className="text-sm text-gray-400">AI Chat Panel</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
