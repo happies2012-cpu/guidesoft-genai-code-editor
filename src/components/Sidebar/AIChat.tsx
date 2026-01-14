@@ -4,6 +4,8 @@ import { Send, Sparkles, Trash2, Settings, Key, Search, Loader2, Copy, FileOutpu
 import { useEditorStore } from '../../store/editorStore';
 import { aiService } from '../../services/ai/AIService';
 import { contextService } from '../../services/ai/ContextService';
+import { vectorStoreService } from '../../services/ai/VectorStoreService';
+import { agentSystemInstance } from '../../services/agents/AgentSystem';
 import type { AIMessage } from '../../types';
 
 export default function AIChat() {
@@ -11,6 +13,8 @@ export default function AIChat() {
     const [isLoading, setIsLoading] = useState(false);
     const [showApiKeyModal, setShowApiKeyModal] = useState(false);
     const [apiKey, setApiKey] = useState('');
+    const [isComposerMode, setIsComposerMode] = useState(false);
+    const [pendingImages, setPendingImages] = useState<string[]>([]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [isScanning, setIsScanning] = useState(false);
     const { aiMessages, addAIMessage, clearAIMessages, selectedProvider, aiProviders, settings, pendingAIAction, clearPendingAIAction, applyAICode } =
@@ -56,11 +60,23 @@ export default function AIChat() {
 
         addAIMessage(userMessage);
         const userInput = input;
+        const imagesToSend = [...pendingImages];
         setInput('');
+        setPendingImages([]);
         setIsLoading(true);
 
         try {
-            // Create AI response message that will be updated with streaming content
+            // RAG Retrieval
+            let augmentedPrompt = userInput;
+            const relevantDocs = await vectorStoreService.search(userInput);
+            if (relevantDocs.length > 0) {
+                const contextBlock = relevantDocs.map(d =>
+                    `File: ${d.metadata.path} (Lines ${d.metadata.lineStart}-${d.metadata.lineEnd})\n\`\`\`\n${d.text}\n\`\`\``
+                ).join('\n\n');
+                augmentedPrompt = `Using the following context from the codebase:\n${contextBlock}\n\nQuestion: ${userInput}`;
+                console.log('RAG Context added:', relevantDocs.length, 'chunks');
+            }
+            // Create AI response message placeholder
             const aiResponseId = (Date.now() + 1).toString();
             const aiResponse: AIMessage = {
                 id: aiResponseId,
@@ -70,31 +86,49 @@ export default function AIChat() {
             };
             addAIMessage(aiResponse);
 
-            let fullContent = '';
+            if (isComposerMode) {
+                // COMPOSER MODE FLOW
+                // Update specific status
+                useEditorStore.setState((state) => ({
+                    aiMessages: state.aiMessages.map((msg) =>
+                        msg.id === aiResponseId ? { ...msg, content: 'Planning and executing changes...' } : msg
+                    ),
+                }));
 
-            // Stream the AI response
-            await aiService.streamComplete(
-                {
-                    provider: selectedProvider,
-                    model: settings.aiModel,
-                    prompt: userInput,
-                    systemPrompt: 'You are a helpful AI coding assistant. Provide clear, concise answers about code, programming concepts, and debugging.',
-                    temperature: 0.7,
-                },
-                (chunk) => {
-                    if (!chunk.done) {
-                        fullContent += chunk.content;
-                        // Update the message content in the store
-                        useEditorStore.setState((state) => ({
-                            aiMessages: state.aiMessages.map((msg) =>
-                                msg.id === aiResponseId
-                                    ? { ...msg, content: fullContent }
-                                    : msg
-                            ),
-                        }));
+                // Agent System Integration (Phase 16)
+                const resultText = await agentSystemInstance.orchestrator.processRequest(augmentedPrompt);
+
+                // Update UI with result
+                useEditorStore.setState((state) => ({
+                    aiMessages: state.aiMessages.map((msg) =>
+                        msg.id === aiResponseId ? {
+                            ...msg,
+                            content: resultText
+                        } : msg
+                    ),
+                }));
+            } else {
+                let fullContent = '';
+                await aiService.streamComplete(
+                    {
+                        provider: selectedProvider,
+                        model: settings.aiModel,
+                        prompt: augmentedPrompt,
+                        images: imagesToSend,
+                        temperature: 0.7,
+                    },
+                    (chunk) => {
+                        if (!chunk.done) {
+                            fullContent += chunk.content;
+                            useEditorStore.setState((state) => ({
+                                aiMessages: state.aiMessages.map((msg) =>
+                                    msg.id === aiResponseId ? { ...msg, content: fullContent } : msg
+                                ),
+                            }));
+                        }
                     }
-                }
-            );
+                );
+            }
 
             setIsLoading(false);
         } catch (error) {
@@ -102,7 +136,7 @@ export default function AIChat() {
             const errorMessage: AIMessage = {
                 id: (Date.now() + 2).toString(),
                 role: 'assistant',
-                content: `Error: ${error instanceof Error ? error.message : 'Failed to get AI response'}. Please check your API key and try again.`,
+                content: `Error: ${error instanceof Error ? error.message : 'Failed to get AI response'}.`,
                 timestamp: Date.now(),
             };
             addAIMessage(errorMessage);
@@ -122,9 +156,12 @@ export default function AIChat() {
         setIsScanning(true);
         try {
             await contextService.refreshContext();
-            console.log('Workspace scanned successfully');
+            await vectorStoreService.indexWorkspace(); // New RAG Indexing
+            alert('Workspace indexed for Semantic Search!');
+            console.log('Workspace scanned and indexed successfully');
         } catch (error) {
             console.error('Scan failed:', error);
+            alert('Scan failed: ' + (error as Error).message);
         } finally {
             setIsScanning(false);
         }
@@ -134,6 +171,30 @@ export default function AIChat() {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             handleSend();
+        }
+    };
+
+    const handleFileRead = (file: File) => {
+        if (!file.type.startsWith('image/')) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            if (typeof e.target?.result === 'string') {
+                setPendingImages(prev => [...prev, e.target!.result as string]);
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        if (e.dataTransfer.files) {
+            Array.from(e.dataTransfer.files).forEach(handleFileRead);
+        }
+    };
+
+    const handlePaste = (e: React.ClipboardEvent) => {
+        if (e.clipboardData.files) {
+            Array.from(e.clipboardData.files).forEach(handleFileRead);
         }
     };
 
@@ -220,14 +281,23 @@ export default function AIChat() {
                 </div>
             </div>
 
-            {/* Provider Info */}
-            <div className="px-4 py-2 bg-dark-bg border-b border-dark-border">
+            {/* Provider Info & Composer Toggle */}
+            <div className="px-4 py-2 bg-dark-bg border-b border-dark-border flex justify-between items-center">
                 <p className="text-xs text-gray-400">
                     Using: <span className="text-primary-500">{selectedProviderData?.name}</span>
                     {selectedProvider !== 'ollama' && !aiService.hasApiKey(selectedProvider) && (
                         <span className="text-yellow-500 ml-2">(API key not set)</span>
                     )}
                 </p>
+                <button
+                    onClick={() => setIsComposerMode(!isComposerMode)}
+                    className={`text-xs px-2 py-1 rounded border transition-colors ${isComposerMode
+                        ? 'bg-purple-500/20 border-purple-500 text-purple-400'
+                        : 'border-white/10 text-gray-500 hover:text-white'
+                        }`}
+                >
+                    {isComposerMode ? 'Composer: ON' : 'Composer: OFF'}
+                </button>
             </div>
 
             {/* Messages */}
@@ -287,13 +357,33 @@ export default function AIChat() {
             </div>
 
             {/* Input */}
-            <div className="p-4 border-t border-dark-border">
+            <div
+                className="p-4 border-t border-dark-border"
+                onDrop={handleDrop}
+                onDragOver={e => e.preventDefault()}
+            >
+                {pendingImages.length > 0 && (
+                    <div className="flex gap-2 mb-2 overflow-x-auto pb-2">
+                        {pendingImages.map((img, idx) => (
+                            <div key={idx} className="relative group flex-shrink-0">
+                                <img src={img} alt="Preview" className="h-16 w-16 object-cover rounded border border-white/20" />
+                                <button
+                                    onClick={() => setPendingImages(prev => prev.filter((_, i) => i !== idx))}
+                                    className="absolute -top-1 -right-1 bg-red-500 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                    <Trash2 size={10} className="text-white" />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                )}
                 <div className="flex gap-2">
                     <textarea
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder="Ask AI anything..."
+                        onPaste={handlePaste}
+                        placeholder="Ask AI anything... (Drag images here)"
                         className="flex-1 bg-dark-bg border border-dark-border rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 custom-scrollbar"
                         rows={3}
                     />

@@ -13,12 +13,32 @@ export class AnthropicProvider {
             throw new Error('Anthropic client not initialized. Please set your API key.');
         }
 
+        const contentBlocks: Anthropic.ContentBlockParam[] = [];
+
+        if (request.images && request.images.length > 0) {
+            request.images.forEach(img => {
+                const base64Data = img.includes('base64,') ? img.split('base64,')[1] : img;
+                contentBlocks.push({
+                    type: 'image',
+                    source: {
+                        type: 'base64',
+                        media_type: 'image/png',
+                        data: base64Data,
+                    }
+                });
+            });
+        }
+
+        const promptText = request.context
+            ? `Context:\n${request.context}\n\nPrompt:\n${request.prompt}`
+            : request.prompt;
+
+        contentBlocks.push({ type: 'text', text: promptText });
+
         const messages: Anthropic.MessageParam[] = [
             {
                 role: 'user',
-                content: request.context
-                    ? `Context:\n${request.context}\n\nPrompt:\n${request.prompt}`
-                    : request.prompt,
+                content: contentBlocks,
             },
         ];
 

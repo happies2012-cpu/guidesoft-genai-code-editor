@@ -5,6 +5,8 @@ import { OllamaProvider } from './providers/ollama';
 import type { AICompletionRequest, AICompletionResponse, AICompletionCallback } from './types';
 
 import { contextService } from './ContextService';
+import { EDITOR_SYSTEM_PROMPT } from './AIPrompts';
+import type { AIMessage } from '../../types';
 
 class AIService {
     private anthropic = new AnthropicProvider();
@@ -52,6 +54,16 @@ class AIService {
         return provider.streamComplete(requestWithContext, callback);
     }
 
+    // Helper for AgentService to get full completion text
+    async getCompletion(prompt: string, _history: AIMessage[], provider: string, model: string): Promise<string> {
+        const response = await this.complete({
+            provider,
+            model,
+            prompt,
+        });
+        return response.content;
+    }
+
     private injectContext(request: AICompletionRequest): AICompletionRequest {
         const context = contextService.getContext();
 
@@ -69,7 +81,7 @@ ${Object.entries(context.majorFiles)
 `;
         return {
             ...request,
-            prompt: `${contextSummary}\n\nUser Question: ${request.prompt}`,
+            prompt: `${EDITOR_SYSTEM_PROMPT}\n\n${contextSummary}\n\nUser Question: ${request.prompt}`,
         };
     }
 

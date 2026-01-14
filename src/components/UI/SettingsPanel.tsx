@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { X, Settings as SettingsIcon, Sparkles, Code, Terminal, Palette } from 'lucide-react';
+import { X, Settings as SettingsIcon, Sparkles, Code, Terminal, Palette, Store } from 'lucide-react';
 import { useEditorStore } from '../../store/editorStore';
+import { ThemeMarketplace } from '../Settings/ThemeMarketplace';
 
 interface SettingsPanelProps {
     onClose: () => void;
@@ -8,7 +9,7 @@ interface SettingsPanelProps {
 
 export default function SettingsPanel({ onClose }: SettingsPanelProps) {
     const { settings, updateSettings, aiProviders, selectedProvider, setSelectedProvider } = useEditorStore();
-    const [activeTab, setActiveTab] = useState<'editor' | 'ai' | 'terminal' | 'appearance'>('editor');
+    const [activeTab, setActiveTab] = useState<'editor' | 'ai' | 'terminal' | 'appearance' | 'marketplace'>('editor');
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -58,6 +59,14 @@ export default function SettingsPanel({ onClose }: SettingsPanelProps) {
                         >
                             <Palette size={16} />
                             Appearance
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('marketplace')}
+                            className={`w-full flex items-center gap-2 px-3 py-2 rounded text-sm mt-1 ${activeTab === 'marketplace' ? 'bg-primary-600 text-white' : 'hover:bg-dark-hover'
+                                }`}
+                        >
+                            <Store size={16} />
+                            Marketplace
                         </button>
                     </div>
 
@@ -232,6 +241,13 @@ export default function SettingsPanel({ onClose }: SettingsPanelProps) {
                                         Cursor-inspired dark theme with blue accents
                                     </p>
                                 </div>
+                            </div>
+                        )}
+
+                        {activeTab === 'marketplace' && (
+                            <div className="h-full">
+                                <h3 className="text-lg font-semibold mb-4">Extensions & Themes</h3>
+                                <ThemeMarketplace />
                             </div>
                         )}
                     </div>

@@ -1,14 +1,30 @@
 import { useEffect, useState } from 'react';
-import { Sparkles, FolderTree, Terminal as TerminalIcon, Settings } from 'lucide-react';
+import { Play, Settings, Bot, Sparkles, FolderTree, Terminal as TerminalIcon, GitBranch } from 'lucide-react';
 import EditorContainer from './components/Editor/EditorContainer';
 import FileExplorer from './components/Sidebar/FileExplorer';
 import AIChat from './components/Sidebar/AIChat';
+import { SearchPanel } from './components/Sidebar/SearchPanel';
+import { GitPanel } from './components/Sidebar/GitPanel';
+import { PreviewPanel } from './components/Preview/PreviewPanel';
 import TerminalComponent from './components/Terminal/TerminalComponent';
 import SettingsPanel from './components/UI/SettingsPanel';
 import CommandPalette from './components/UI/CommandPalette';
 import { useEditorStore } from './store/editorStore';
+import AgentStatusPanel from './components/Sidebar/AgentStatusPanel';
+import ApprovalModal from './components/UI/ApprovalModal';
+import { MarketingLayout } from './components/Marketing/MarketingLayout';
+import { LandingPage } from './components/Marketing/LandingPage';
+import { PricingPage } from './components/Marketing/PricingPage';
+import { FAQPage } from './components/Marketing/FAQPage';
+import { AdminLayout } from './components/Admin/AdminLayout';
+import { DashboardOverview } from './components/Admin/DashboardOverview';
+import { UserManagement } from './components/Admin/UserManagement';
+import { VendorManagement } from './components/Admin/VendorManagement';
 
 function App() {
+  const [view, setView] = useState<'editor' | 'marketing' | 'admin'>('marketing');
+  const [marketingPage, setMarketingPage] = useState<'landing' | 'pricing' | 'faq'>('landing');
+  const [adminPage, setAdminPage] = useState<'overview' | 'users' | 'vendors' | 'settings'>('overview');
   const [showSettings, setShowSettings] = useState(false);
   const {
     sidebarVisible,
@@ -23,7 +39,12 @@ function App() {
     tabs,
     activeTabId,
     selectedProvider,
+    sidebarView,
+    setSidebarView,
   } = useEditorStore();
+
+  const [showPreview, setShowPreview] = useState(false);
+  const [showAgentPanel, setShowAgentPanel] = useState(false);
 
   const activeTab = tabs.find(t => t.id === activeTabId);
 
@@ -82,6 +103,35 @@ function App() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [setFileTree, toggleSidebar, toggleTerminal, toggleAIChat]);
+
+  if (view === 'marketing') {
+    return (
+      <MarketingLayout
+        currentPage={marketingPage}
+        onNavigate={setMarketingPage}
+        onGetStarted={() => setView('editor')}
+      >
+        {marketingPage === 'landing' && <LandingPage onGetStarted={() => setView('editor')} />}
+        {marketingPage === 'pricing' && <PricingPage onGetStarted={() => setView('editor')} />}
+        {marketingPage === 'faq' && <FAQPage />}
+      </MarketingLayout>
+    );
+  }
+
+  if (view === 'admin') {
+    return (
+      <AdminLayout
+        currentPage={adminPage}
+        onNavigate={setAdminPage}
+        onLogout={() => setView('marketing')}
+      >
+        {adminPage === 'overview' && <DashboardOverview />}
+        {adminPage === 'users' && <UserManagement />}
+        {adminPage === 'vendors' && <VendorManagement />}
+        {adminPage === 'settings' && <div className="p-8 text-gray-400">Settings coming soon...</div>}
+      </AdminLayout>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen bg-dark-bg text-white">
@@ -157,9 +207,22 @@ function App() {
               </div>
             </div>
 
-            <button className="px-3 py-1 hover:bg-dark-hover rounded transition-colors" onClick={toggleSidebar}>
-              View
-            </button>
+            <div className="relative group">
+              <button className="px-3 py-1 hover:bg-dark-hover rounded transition-colors">
+                View
+              </button>
+              <div className="absolute left-0 top-full mt-1 w-48 bg-dark-surface border border-dark-border rounded shadow-xl hidden group-hover:block z-50">
+                <button className="px-3 py-1 hover:bg-dark-hover rounded transition-colors" onClick={toggleSidebar}>
+                  Toggle Sidebar
+                </button>
+                <button
+                  className="w-full text-left px-4 py-2 hover:bg-primary-600 text-sm border-t border-dark-border mt-1 pt-2"
+                  onClick={() => setView('admin')}
+                >
+                  Admin Dashboard
+                </button>
+              </div>
+            </div>
             <button className="px-3 py-1 hover:bg-dark-hover rounded transition-colors" onClick={toggleAIChat}>
               AI
             </button>
@@ -204,15 +267,71 @@ function App() {
       <div className="flex flex-1 overflow-hidden">
         {/* Left Sidebar */}
         {sidebarVisible && (
-          <div className="w-64 flex-shrink-0">
-            <FileExplorer />
+          <div className="w-64 flex-shrink-0 flex text-gray-300">
+            {/* Sidebar Tabs */}
+            <div className="w-12 bg-dark-bg border-r border-dark-border flex flex-col items-center py-4 gap-4">
+              <button
+                onClick={() => setSidebarView('files')}
+                className={`p-2 rounded hover:bg-white/10 ${sidebarView === 'files' ? 'text-white bg-white/10' : 'text-gray-500'}`}
+                title="Explorer"
+              >
+                <FolderTree size={20} />
+              </button>
+              <button
+                onClick={() => setSidebarView('search')}
+                className={`p-2 rounded hover:bg-white/10 ${sidebarView === 'search' ? 'text-white bg-white/10' : 'text-gray-500'}`}
+                title="Search"
+              >
+                <FolderTree size={0} className="hidden" /> {/* Hack to keep import used */}
+                <Settings size={0} className="hidden" />
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              </button>
+              <button
+                onClick={() => setSidebarView('git')}
+                className={`p-2 rounded hover:bg-white/10 ${sidebarView === 'git' ? 'text-white bg-white/10' : 'text-gray-500'}`}
+                title="Source Control"
+              >
+                <GitBranch size={20} />
+              </button>
+
+              <div className="flex-1" /> {/* Spacer */}
+
+              <button
+                onClick={() => { setShowAgentPanel(!showAgentPanel); setShowPreview(false); }}
+                className={`p-2 rounded hover:bg-white/10 ${showAgentPanel ? 'text-primary-400 bg-white/10' : 'text-gray-500'}`}
+                title="Toggle Agent Brain"
+              >
+                <Bot size={20} />
+              </button>
+              <button
+                onClick={() => { setShowPreview(!showPreview); setShowAgentPanel(false); }}
+                className={`p-2 rounded hover:bg-white/10 ${showPreview ? 'text-primary-400 bg-white/10' : 'text-gray-500'}`}
+                title="Toggle Live Preview"
+              >
+                <Play size={20} />
+              </button>
+            </div>
+
+            {/* Sidebar Content */}
+            <div className="flex-1 bg-dark-surface border-r border-dark-border overflow-hidden">
+              {sidebarView === 'files' ? <FileExplorer /> :
+                sidebarView === 'search' ? <SearchPanel /> :
+                  <GitPanel />}
+            </div>
           </div>
         )}
 
-        {/* Editor */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <div className={terminalVisible ? 'h-2/3' : 'h-full'}>
-            <EditorContainer />
+        {/* Center: Editor & Terminal */}
+        <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+          <div className={terminalVisible ? 'h-2/3' : 'h-full border-b border-dark-border'}>
+            {activeTabId ? <EditorContainer /> : (
+              <div className="flex-1 h-full flex items-center justify-center text-gray-500 bg-dark-bg">
+                <div className="text-center">
+                  <p className="text-xl mb-4">Welcome to GuideSoft GenAI Editor</p>
+                  <p className="text-sm">Select a file to start editing</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Terminal Panel */}
@@ -237,16 +356,30 @@ function App() {
           )}
         </div>
 
-        {/* Right Sidebar - AI Chat */}
+        {/* Right: Preview Panel */}
+        {showPreview && (
+          <div className="w-1/2 border-l border-dark-border flex-shrink-0">
+            <PreviewPanel />
+          </div>
+        )}
+
+        {/* Right: Agent Panel */}
+        {showAgentPanel && (
+          <div className="w-80 border-l border-dark-border flex-shrink-0">
+            <AgentStatusPanel />
+          </div>
+        )}
+
+        {/* Right: AI Chat */}
         {aiChatVisible && (
-          <div className="w-96 flex-shrink-0">
+          <div className="w-96 flex-shrink-0 border-l border-dark-border">
             <AIChat />
           </div>
         )}
       </div>
 
       {/* Status Bar */}
-      <div className="flex items-center justify-between px-4 py-1 bg-dark-surface border-t border-dark-border text-xs">
+      < div className="flex items-center justify-between px-4 py-1 bg-dark-surface border-t border-dark-border text-xs" >
         <div className="flex items-center gap-4">
           <span className="text-gray-400">
             {activeTab ? (activeTab.isDirty ? 'Modified' : 'Saved') : 'Ready'}
@@ -271,14 +404,17 @@ function App() {
             <span className="font-medium">{(selectedProvider as string)} AI</span>
           </div>
         </div>
-      </div>
+      </div >
 
       {/* Settings Panel */}
       {showSettings && <SettingsPanel onClose={() => setShowSettings(false)} />}
 
       {/* Command Palette */}
       {commandPaletteOpen && <CommandPalette onClose={toggleCommandPalette} />}
-    </div>
+
+      {/* Agent Approval Gate */}
+      <ApprovalModal />
+    </div >
   );
 }
 

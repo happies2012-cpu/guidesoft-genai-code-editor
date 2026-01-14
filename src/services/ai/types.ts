@@ -23,6 +23,7 @@ export interface AICompletionRequest {
     maxTokens?: number;
     temperature?: number;
     stream?: boolean;
+    images?: string[];
 }
 
 export interface AICompletionResponse {

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { EditorTab, FileTreeNode, AIProvider, AIMessage, TerminalSession, EditorSettings, GitStatus } from '../types';
+import type { SearchResult } from '../services/search/types';
 import { getLanguageFromFilename } from '../utils/fileUtils';
 
 interface EditorStore {
@@ -60,6 +61,16 @@ interface EditorStore {
     toggleTerminal: () => void;
     toggleAIChat: () => void;
     toggleCommandPalette: () => void;
+    sidebarView: 'files' | 'search' | 'git';
+    setSidebarView: (view: 'files' | 'search' | 'git') => void;
+
+    // Search
+    searchQuery: string;
+    searchResults: SearchResult[];
+    isSearching: boolean;
+    setSearchQuery: (query: string) => void;
+    setSearchResults: (results: SearchResult[]) => void;
+    setIsSearching: (isSearching: boolean) => void;
     applyAICode: (code: string) => void;
 }
 
@@ -246,6 +257,18 @@ export const useEditorStore = create<EditorStore>()(
             toggleAIChat: () => set((state) => ({ aiChatVisible: !state.aiChatVisible })),
             toggleCommandPalette: () =>
                 set((state) => ({ commandPaletteOpen: !state.commandPaletteOpen })),
+
+            // Sidebar View
+            sidebarView: 'files',
+            setSidebarView: (view) => set({ sidebarView: view, sidebarVisible: true }),
+
+            // Search
+            searchQuery: '',
+            searchResults: [],
+            isSearching: false,
+            setSearchQuery: (query) => set({ searchQuery: query }),
+            setSearchResults: (results) => set({ searchResults: results }),
+            setIsSearching: (isSearching) => set({ isSearching }),
         }),
         {
             name: 'ai-code-editor-storage',

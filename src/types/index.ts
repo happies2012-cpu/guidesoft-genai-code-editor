@@ -27,12 +27,18 @@ export interface AIProvider {
     requiresApiKey: boolean;
 }
 
+export interface AIAttachment {
+    type: 'image';
+    content: string; // base64 or url
+    name?: string;
+}
+
 export interface AIMessage {
     id: string;
     role: 'user' | 'assistant' | 'system';
     content: string;
+    attachments?: AIAttachment[];
     timestamp: number;
-    codeBlocks?: CodeBlock[];
 }
 
 export interface CodeBlock {
@@ -45,8 +51,8 @@ export interface AICompletionRequest {
     provider: string;
     model: string;
     prompt: string;
-    context?: string;
-    maxTokens?: number;
+    systemPrompt?: string;
+    images?: string[]; // base64 strings
     temperature?: number;
     stream?: boolean;
 }

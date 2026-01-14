@@ -27,6 +27,7 @@ export default function CommandPalette({ onClose }: CommandPaletteProps) {
         clearAIMessages,
         tabs,
         setActiveTab,
+        setSidebarView,
     } = useEditorStore();
 
     const commands: Command[] = [
@@ -54,6 +55,14 @@ export default function CommandPalette({ onClose }: CommandPaletteProps) {
             icon: <FolderOpen size={16} />,
             action: () => { toggleSidebar(); onClose(); },
             keywords: ['sidebar', 'explorer', 'files'],
+        },
+        {
+            id: 'show-search',
+            label: 'Show Search',
+            description: 'Open the global search panel',
+            icon: <Search size={16} />,
+            action: () => { setSidebarView('search'); onClose(); },
+            keywords: ['search', 'find', 'replace', 'global'],
         },
         {
             id: 'toggle-terminal',

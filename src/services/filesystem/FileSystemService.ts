@@ -116,10 +116,11 @@ export class FileSystemService {
 
             const entries: { name: string; type: 'file' | 'directory' }[] = [];
 
-            for await (const entry of (dirHandle as unknown as AsyncIterable<FileSystemHandle>)) {
+            // @ts-ignore - TS definition might vary for async iterator
+            for await (const [name, handle] of dirHandle.entries()) {
                 entries.push({
-                    name: entry.name,
-                    type: entry.kind === 'directory' ? 'directory' : 'file',
+                    name: name,
+                    type: handle.kind === 'directory' ? 'directory' : 'file',
                 });
             }
 
@@ -133,6 +134,23 @@ export class FileSystemService {
         } catch (error) {
             throw new Error('Failed to list directory: ' + (error as Error).message);
         }
+    }
+
+    async listAllFiles(dirPath: string = ''): Promise<{ name: string; path: string }[]> {
+        const entries = await this.listDirectory(dirPath);
+        let results: { name: string; path: string }[] = [];
+
+        for (const entry of entries) {
+            const fullPath = dirPath ? `${dirPath}/${entry.name}` : entry.name;
+            if (entry.type === 'file') {
+                results.push({ name: entry.name, path: fullPath });
+            } else {
+                if (entry.name === 'node_modules' || entry.name === '.git' || entry.name === 'dist') continue; // Simple exclusion
+                const subFiles = await this.listAllFiles(fullPath);
+                results = results.concat(subFiles);
+            }
+        }
+        return results;
     }
 
     private async getFileHandle(
