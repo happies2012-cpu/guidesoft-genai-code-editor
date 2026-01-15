@@ -49,7 +49,7 @@ class AgentSystem {
         // Language Generators
         Object.values(Generators).forEach(GeneratorClass => {
             if (typeof GeneratorClass === 'function') {
-                // @ts-ignore
+                // @ts-expect-error - Dynamic instantiation
                 this.orchestrator.registerAgent(new GeneratorClass(bus));
             }
         });

@@ -20,8 +20,9 @@ export default function MonacoEditor({ tabId, value, language, onChange }: Monac
         editorRef.current = editor;
 
         // Initialize LSP Service
-        const { lspService } = require('../../services/lsp/LSPService');
-        lspService.initialize(monaco);
+        import('../../services/lsp/LSPService').then(({ lspService }) => {
+            lspService.initialize(monaco);
+        });
 
         // Register inline completion provider for AI-powered suggestions
         monaco.languages.registerInlineCompletionsProvider(

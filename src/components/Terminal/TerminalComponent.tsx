@@ -13,6 +13,57 @@ export default function TerminalComponent({ terminalId }: TerminalComponentProps
     const xtermRef = useRef<Terminal | null>(null);
     const fitAddonRef = useRef<FitAddon | null>(null);
 
+    const handleCommand = (terminal: Terminal, command: string) => {
+        if (!command) return;
+
+        const args = command.split(' ');
+        const cmd = args[0].toLowerCase();
+
+        switch (cmd) {
+            case 'help':
+                terminal.writeln('Available commands:');
+                terminal.writeln('  help     - Show this help message');
+                terminal.writeln('  clear    - Clear the terminal');
+                terminal.writeln('  echo     - Echo text');
+                terminal.writeln('  date     - Show current date and time');
+                terminal.writeln('  whoami   - Show current user');
+                terminal.writeln('');
+                break;
+
+            case 'clear':
+                terminal.clear();
+                break;
+
+            case 'echo':
+                terminal.writeln(args.slice(1).join(' '));
+                break;
+
+            case 'date':
+                terminal.writeln(new Date().toString());
+                break;
+
+            case 'whoami':
+                terminal.writeln('guidesoft-user');
+                break;
+
+            case 'ls':
+                terminal.writeln('src/');
+                terminal.writeln('public/');
+                terminal.writeln('package.json');
+                terminal.writeln('README.md');
+                break;
+
+            case 'pwd':
+                terminal.writeln('/workspace');
+                break;
+
+            default:
+                terminal.writeln(`\x1b[31mCommand not found: ${cmd}\x1b[0m`);
+                terminal.writeln('Type "help" for available commands.');
+                break;
+        }
+    };
+
     useEffect(() => {
         if (!terminalRef.current) return;
 
@@ -107,56 +158,7 @@ export default function TerminalComponent({ terminalId }: TerminalComponentProps
         };
     }, [terminalId]);
 
-    const handleCommand = (terminal: Terminal, command: string) => {
-        if (!command) return;
 
-        const args = command.split(' ');
-        const cmd = args[0].toLowerCase();
-
-        switch (cmd) {
-            case 'help':
-                terminal.writeln('Available commands:');
-                terminal.writeln('  help     - Show this help message');
-                terminal.writeln('  clear    - Clear the terminal');
-                terminal.writeln('  echo     - Echo text');
-                terminal.writeln('  date     - Show current date and time');
-                terminal.writeln('  whoami   - Show current user');
-                terminal.writeln('');
-                break;
-
-            case 'clear':
-                terminal.clear();
-                break;
-
-            case 'echo':
-                terminal.writeln(args.slice(1).join(' '));
-                break;
-
-            case 'date':
-                terminal.writeln(new Date().toString());
-                break;
-
-            case 'whoami':
-                terminal.writeln('guidesoft-user');
-                break;
-
-            case 'ls':
-                terminal.writeln('src/');
-                terminal.writeln('public/');
-                terminal.writeln('package.json');
-                terminal.writeln('README.md');
-                break;
-
-            case 'pwd':
-                terminal.writeln('/workspace');
-                break;
-
-            default:
-                terminal.writeln(`\x1b[31mCommand not found: ${cmd}\x1b[0m`);
-                terminal.writeln('Type "help" for available commands.');
-                break;
-        }
-    };
 
     return (
         <div ref={terminalRef} className="w-full h-full" />

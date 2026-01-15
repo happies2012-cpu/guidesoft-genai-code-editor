@@ -116,7 +116,7 @@ export class FileSystemService {
 
             const entries: { name: string; type: 'file' | 'directory' }[] = [];
 
-            // @ts-ignore - TS definition might vary for async iterator
+            // @ts-expect-error - WebKit API specific - TS definition might vary for async iterator
             for await (const [name, handle] of dirHandle.entries()) {
                 entries.push({
                     name: name,

@@ -7,12 +7,7 @@ export const MCPPluginManager: React.FC = () => {
     const [installedPlugins, setInstalledPlugins] = useState<MCPPlugin[]>([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        loadPlugins();
-    }, []);
-
     const loadPlugins = async () => {
-        setLoading(true);
         const available = await mcpService.getAvailablePlugins();
         const installed = mcpService.getInstalledPlugins();
         setAvailablePlugins(available);
@@ -20,14 +15,20 @@ export const MCPPluginManager: React.FC = () => {
         setLoading(false);
     };
 
+    useEffect(() => {
+        setTimeout(loadPlugins, 0);
+    }, []);
+
     const handleInstall = (pluginId: string) => {
         if (mcpService.installPlugin(pluginId)) {
+            setLoading(true);
             loadPlugins();
         }
     };
 
     const handleUninstall = (pluginId: string) => {
         if (mcpService.uninstallPlugin(pluginId)) {
+            setLoading(true);
             loadPlugins();
         }
     };
